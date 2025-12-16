@@ -1,0 +1,483 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForgeWS Protocol",
+  "description": "WebSocket protocol for communication between TraceForge Desktop and ForgeEngine",
+  "version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "timestamp"],
+
+  "definitions": {
+    "BaseMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "timestamp"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique message identifier for correlation"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["request", "response", "event", "error"],
+          "description": "Message type"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "trace_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Execution trace identifier for correlation across messages"
+        }
+      }
+    },
+
+    "Action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action_type", "order_index"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Action identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable action name"
+        },
+        "action_type": {
+          "type": "string",
+          "enum": ["navigate", "click", "fill", "hover", "wait", "assert", "screenshot", "scroll", "keyboard"],
+          "description": "Type of action"
+        },
+        "order_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Execution order within page"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 30000,
+          "description": "Action timeout in milliseconds"
+        },
+        "wait_after": {
+          "type": "string",
+          "description": "Wait condition after action (e.g., 'selector_visible:.dashboard')"
+        },
+        "screenshot_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to capture screenshot after action"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Action parameters (key-value pairs)",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "locators": {
+          "type": "array",
+          "description": "Element locator strategies (ordered by priority)",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["locator_type", "value", "priority"],
+            "properties": {
+              "locator_type": {
+                "type": "string",
+                "enum": ["role", "text", "css", "xpath", "id"],
+                "description": "Locator strategy type"
+              },
+              "value": {
+                "type": "string",
+                "description": "Locator value"
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Priority (1 = highest)"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "Page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "order_index", "actions"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Page identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Page name"
+        },
+        "entry_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to navigate to for this page"
+        },
+        "default_wait": {
+          "type": "string",
+          "enum": ["load", "networkidle", "domcontentloaded"],
+          "description": "Default wait condition for page load"
+        },
+        "order_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Display order within scenario"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Action"
+          }
+        }
+      }
+    },
+
+    "Scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "priority", "order_index", "pages"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Scenario identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Scenario name"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2"],
+          "description": "Execution priority"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional scenario description"
+        },
+        "order_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Display order within script"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Page"
+          }
+        }
+      }
+    },
+
+    "Script": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version", "priority", "scenarios"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Script identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Script name"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2"],
+          "description": "Script priority"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional script description"
+        },
+        "kernel_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Target kernel identifier"
+        },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Scenario"
+          }
+        },
+        "data_driven": {
+          "type": "object",
+          "description": "Data-driven testing configuration",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether data-driven mode is enabled"
+            },
+            "data_source": {
+              "type": "string",
+              "description": "Data source identifier or inline data"
+            },
+            "variables": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "column"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Variable name for {{variable}} substitution"
+                  },
+                  "column": {
+                    "type": "string",
+                    "description": "Column name in data source"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "ExecutionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_id", "status", "started_at"],
+      "properties": {
+        "execution_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Execution identifier"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "SKIP", "RUNNING"],
+          "description": "Execution status"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Execution start time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Execution completion time"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total execution duration"
+        },
+        "current_step": {
+          "type": "integer",
+          "description": "Current step index (0-based)"
+        },
+        "total_steps": {
+          "type": "integer",
+          "description": "Total number of steps"
+        },
+        "error_message": {
+          "type": "string",
+          "description": "Error message if failed"
+        },
+        "trace_path": {
+          "type": "string",
+          "description": "Path to trace.zip file"
+        },
+        "screenshots": {
+          "type": "array",
+          "description": "Step screenshots (base64 or path)",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["step_id", "data"],
+            "properties": {
+              "step_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Action identifier"
+              },
+              "data": {
+                "type": "string",
+                "description": "Screenshot data (base64 or file path)"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "$ref": "#/definitions/BaseMessage"
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action", "payload"],
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": ["start_recording", "stop_recording", "pause_recording", "resume_recording"],
+              "description": "Recording control action"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Initial URL to navigate to"
+                },
+                "kernel_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Kernel identifier"
+                },
+                "headless": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Run browser in headless mode"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action", "payload"],
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": ["execute_script", "debug_script"],
+              "description": "Script execution action"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "script": {
+                  "$ref": "#/definitions/Script"
+                },
+                "kernel_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Kernel identifier"
+                },
+                "headless": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Run browser in headless mode"
+                },
+                "start_from_scenario": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Start execution from scenario ID"
+                },
+                "start_from_page": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Start execution from page ID"
+                },
+                "data_row_index": {
+                  "type": "integer",
+                  "description": "Data row index for data-driven execution"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action"],
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": ["cancel_execution", "get_status", "ping"],
+              "description": "Control action"
+            },
+            "payload": {
+              "type": "object",
+              "description": "Action payload (optional)"
+            }
+          }
+        }
+      ]
+    }
+  ],
+
+  "examples": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "request",
+      "action": "start_recording",
+      "timestamp": "2025-12-16T10:30:00.000Z",
+      "trace_id": "550e8400-e29b-41d4-a716-446655440001",
+      "payload": {
+        "url": "https://example.com/login",
+        "kernel_id": "550e8400-e29b-41d4-a716-446655440002",
+        "headless": false
+      }
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440010",
+      "type": "event",
+      "action": "step_captured",
+      "timestamp": "2025-12-16T10:30:05.000Z",
+      "trace_id": "550e8400-e29b-41d4-a716-446655440001",
+      "payload": {
+        "action": {
+          "id": "550e8400-e29b-41d4-a716-446655440020",
+          "action_type": "fill",
+          "name": "Fill username",
+          "order_index": 0,
+          "parameters": {
+            "selector": "#username",
+            "value": "testuser"
+          },
+          "locators": [
+            {
+              "locator_type": "role",
+              "value": "textbox[name='username']",
+              "priority": 1
+            },
+            {
+              "locator_type": "css",
+              "value": "#username",
+              "priority": 2
+            }
+          ]
+        },
+        "screenshot": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+      }
+    }
+  ]
+}
