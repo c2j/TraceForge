@@ -25,14 +25,14 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Initialize Tauri 2.x project with Rust 1.75 backend and React 18 frontend
-- [ ] T002 Configure TypeScript 5.x, Tailwind CSS, and Shadcn/ui component library
-- [ ] T003 [P] Setup package.json with all dependencies (Zustand, tauri-plugin-sql, etc.)
-- [ ] T004 [P] Configure Cargo.toml with Tauri dependencies and build configuration
-- [ ] T005 [P] Setup tauri.conf.json with application metadata and bundler settings
-- [ ] T006 [P] Configure TypeScript strict mode, ESLint, and Prettier formatting
-- [ ] T007 Create project directory structure per implementation plan
-- [ ] T008 [P] Setup development environment (.env.example, .gitignore, README.md)
+- [X] T001 Initialize Tauri 2.x project with Rust 1.75 backend and React 18 frontend
+- [X] T002 Configure TypeScript 5.x, Tailwind CSS, and Shadcn/ui component library
+- [X] T003 [P] Setup package.json with all dependencies (Zustand, tauri-plugin-sql, etc.)
+- [X] T004 [P] Configure Cargo.toml with Tauri dependencies and build configuration
+- [X] T005 [P] Setup tauri.conf.json with application metadata and bundler settings
+- [X] T006 [P] Configure TypeScript strict mode, ESLint, and Prettier formatting
+- [X] T007 Create project directory structure per implementation plan
+- [X] T008 [P] Setup development environment (.env.example, .gitignore, README.md)
 
 **Checkpoint**: Project structure complete and ready for development
 
@@ -44,18 +44,18 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 Create SQLite database schema (Projects, Scripts, Scenarios, Pages, Actions, Kernels, Executions)
-- [ ] T010 [P] Implement tauri-plugin-sql database initialization and migration system
-- [ ] T011 [P] Implement database CRUD operations for all core entities (Project, Script, Kernel)
-- [ ] T012 [P] Create TypeScript type definitions for all entities in Desktop/src/lib/types.ts
-- [ ] T013 Setup Zustand state stores (engineStore.ts, dbStore.ts, syncStore.ts)
-- [ ] T014 Implement WebSocket client library in Desktop/src/lib/ws-client.ts
-- [ ] T015 [P] Create Tauri commands for database operations in Desktop/src-tauri/src/commands/db.rs
-- [ ] T016 [P] Create Tauri commands for engine management in Desktop/src-tauri/src/commands/engine.rs
-- [ ] T017 [P] Implement engine spawning logic with random port allocation
-- [ ] T018 Setup tauri-plugin-log with JSON format and trace_id correlation
-- [ ] T019 [P] Configure error handling and logging across backend and frontend
-- [ ] T020 Create main application layout component (TFLayout) with navigation
+- [X] T009 Create SQLite database schema (Projects, Scripts, Scenarios, Pages, Actions, Kernels, Executions)
+- [X] T010 [P] Implement tauri-plugin-sql database initialization and migration system
+- [X] T011 [P] Implement database CRUD operations for all core entities (Project, Script, Kernel)
+- [X] T012 [P] Create TypeScript type definitions for all entities in Desktop/src/lib/types.ts
+- [X] T013 Setup Zustand state stores (engineStore.ts, dbStore.ts, syncStore.ts)
+- [X] T014 Implement WebSocket client library in Desktop/src/lib/ws-client.ts
+- [X] T015 [P] Create Tauri commands for database operations in Desktop/src-tauri/src/commands/db.rs
+- [X] T016 [P] Create Tauri commands for engine management in Desktop/src-tauri/src/commands/engine.rs
+- [X] T017 [P] Implement engine spawning logic with random port allocation
+- [X] T018 Setup tauri-plugin-log with JSON format and trace_id correlation
+- [X] T019 [P] Configure error handling and logging across backend and frontend
+- [X] T020 Create main application layout component (TFLayout) with navigation
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -69,21 +69,21 @@
 
 ### Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Create Dashboard page component in Desktop/src/pages/Dashboard.tsx
-- [ ] T022 [P] [US1] Implement Dashboard KPI metrics (pass rate, failures, coverage, scripts)
-- [ ] T023 [P] [US1] Create Recorder page component in Desktop/src/pages/Recorder.tsx
-- [ ] T024 [US1] Implement hierarchical tree view component for Scenarios/Pages/Actions
-- [ ] T025 [US1] Implement real-time screenshot viewer in Desktop/src/components/ScreenshotViewer.tsx
-- [ ] T026 [US1] Create WebSocket message handlers for recording events (step_captured, screenshot)
-- [ ] T027 [US1] Implement "Quick Record" functionality from Dashboard
-- [ ] T028 [US1] Create Editor page component in Desktop/src/pages/Editor.tsx
-- [ ] T029 [US1] Implement three-panel editor layout (tree view, details, preview)
-- [ ] T030 [US1] Create Script CRUD operations and state management
-- [ ] T031 [US1] Implement script execution via WebSocket (execute_script action)
-- [ ] T032 [US1] Create Results page component in Desktop/src/pages/Results.tsx
-- [ ] T033 [US1] Implement execution history display with filtering and search
-- [ ] T034 [US1] Add support for multiple locator strategies per action (role, text, CSS, XPath)
-- [ ] T035 [US1] Implement drag-and-drop reordering for tree view nodes
+- [X] T021 [P] [US1] Create Dashboard page component in Desktop/src/pages/Dashboard.tsx (ForgeDashboard.tsx)
+- [X] T022 [P] [US1] Implement Dashboard KPI metrics (pass rate, failures, coverage, scripts)
+- [X] T023 [P] [US1] Create Recorder page component in Desktop/src/pages/Recorder.tsx (ForgeRecorder.tsx)
+- [X] T024 [US1] Implement hierarchical tree view component for Scenarios/Pages/Actions (in ForgeEditor.tsx)
+- [X] T025 [US1] Implement real-time screenshot viewer in Desktop/src/components/ScreenshotViewer.tsx
+- [X] T026 [US1] Create WebSocket message handlers for recording events (step_captured, screenshot)
+- [X] T027 [US1] Implement "Quick Record" functionality from Dashboard (button in ForgeDashboard.tsx)
+- [X] T028 [US1] Create Editor page component in Desktop/src/pages/Editor.tsx (ForgeEditor.tsx)
+- [X] T029 [US1] Implement three-panel editor layout (tree view, details, preview)
+- [X] T030 [US1] Create Script CRUD operations and state management (in dbStore.ts)
+- [X] T031 [US1] Implement script execution via WebSocket (execute_script action)
+- [X] T032 [US1] Create Results page component in Desktop/src/pages/Results.tsx (ForgeResults.tsx)
+- [X] T033 [US1] Implement execution history display with filtering and search
+- [X] T034 [US1] Add support for multiple locator strategies per action (role, text, CSS, XPath)
+- [X] T035 [US1] Implement drag-and-drop reordering for tree view nodes (TreeView.tsx)
 
 **Checkpoint**: User Story 1 complete - full offline recording, editing, and execution workflow functional
 
@@ -97,18 +97,18 @@
 
 ### Implementation for User Story 2
 
-- [ ] T036 [P] [US2] Create Tracer page component in Desktop/src/pages/Tracer.tsx
-- [ ] T037 [US2] Integrate Playwright trace viewer as embedded iframe component
-- [ ] T038 [US2] Implement visual regression comparison (side-by-side screenshots)
-- [ ] T039 [US2] Create execution step detail view with screenshot highlighting
-- [ ] T040 [US2] Implement "Test Locator" functionality in Editor
-- [ ] T041 [US2] Add fallback locator management UI (add, reorder, remove locators)
-- [ ] T042 [US2] Create element highlighting on live page for locator testing
-- [ ] T043 [US2] Implement step-by-step execution with real-time status updates
-- [ ] T044 [US2] Add timeline scrubbing in trace viewer with DOM snapshots
-- [ ] T045 [US2] Create execution report export (JSON, HTML)
-- [ ] T046 [US2] Implement error message display and root cause analysis
-- [ ] T047 [US2] Add visual diff calculation and percentage metrics
+- [X] T036 [P] [US2] Create Tracer page component in Desktop/src/pages/Tracer.tsx
+- [X] T037 [US2] Integrate Playwright trace viewer as embedded iframe component
+- [X] T038 [US2] Implement visual regression comparison (side-by-side screenshots)
+- [X] T039 [US2] Create execution step detail view with screenshot highlighting
+- [X] T040 [US2] Implement "Test Locator" functionality in Editor
+- [X] T041 [US2] Add fallback locator management UI (add, reorder, remove locators)
+- [X] T042 [US2] Create element highlighting on live page for locator testing
+- [X] T043 [US2] Implement step-by-step execution with real-time status updates
+- [X] T044 [US2] Add timeline scrubbing in trace viewer with DOM snapshots
+- [X] T045 [US2] Create execution report export (JSON, HTML)
+- [X] T046 [US2] Implement error message display and root cause analysis
+- [X] T047 [US2] Add visual diff calculation and percentage metrics
 
 **Checkpoint**: User Story 2 complete - full debugging and visual feedback capabilities functional
 

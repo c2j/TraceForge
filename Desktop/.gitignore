@@ -7,18 +7,75 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Node.js dependencies
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.tmp
+*.temp
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Build artifacts
+build/
+.next/
+out/
+dist-ssr/
+*.tsbuildinfo
+
+# Rust
+/src-tauri/target/
+debug/
+release/
+*.rs.bk
+*.rlib
+*.profraw
+*.prof*
+Cargo.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpm-debug.log*
+
+# Temporary files
+*.orig
+*.rej
+*.zip
+*.tar.gz
+*.rar

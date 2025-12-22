@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Pause, Square, Plus, Target, Camera, Save, X, 
+import {
+  Pause, Square, Plus, Target, Camera, Save, X,
   MousePointer, ChevronDown, Clock, MoveRight,
-  MonitorPlay, Trash2, Edit2, AlertCircle
+  MonitorPlay, Trash2
 } from 'lucide-react';
 
 const ForgeRecorder: React.FC = () => {
-  const [isRecording, setIsRecording] = useState(true);
+  const [isRecording] = useState(true);
 
   // Mock Data
   const logs = [

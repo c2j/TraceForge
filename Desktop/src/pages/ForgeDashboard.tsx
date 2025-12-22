@@ -1,6 +1,6 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Play, Plus, Video, Cpu, ChevronDown, FileText } from 'lucide-react';
+import { Play, Plus, Video, ChevronDown, FileText } from 'lucide-react';
 import { useForgeStore } from '../stores/useForgeStore';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';

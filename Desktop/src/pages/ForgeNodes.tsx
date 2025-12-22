@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForgeStore } from '../stores/useForgeStore';
-import { Server, RefreshCw, Activity, Cpu, HardDrive } from 'lucide-react';
+import { Server, RefreshCw, Cpu, HardDrive } from 'lucide-react';
 
 const ForgeNodes: React.FC = () => {
   const { nodes } = useForgeStore();

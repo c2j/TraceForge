@@ -128,7 +128,7 @@ const ForgeResults: React.FC = () => {
                 {/* Vertical Line */}
                 <div className="absolute left-[15px] top-2 bottom-4 w-0.5 bg-slate-800"></div>
 
-                {selectedResult.steps.map((step, idx) => (
+                {selectedResult.steps.map((step) => (
                   <div key={step.id} className="relative pl-10 pb-6 group">
                      {/* Status Node */}
                      <div className={`absolute left-0 top-0 w-8 h-8 rounded-full border-4 border-background flex items-center justify-center z-10 
