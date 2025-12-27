@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MonitorPlay, Camera, ZoomIn, ZoomOut, RotateCcw, Maximize2, Target } from 'lucide-react';
+import { Camera, ZoomIn, ZoomOut, RotateCcw, Maximize2, Target } from 'lucide-react';
 
 export interface ScreenshotData {
   id: string;

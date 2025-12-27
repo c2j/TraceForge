@@ -4,7 +4,8 @@ import {
   ChevronLeft, Hash, Calendar, Clock, Eye,
   Image as ImageIcon, FileText, Zap, AlertTriangle,
   BarChart3, GitCompare, Download, Maximize2,
-  Filter, Search, RefreshCw, Target, Layers, X, ExternalLink
+  Search, Layers, X, ExternalLink,
+  Terminal
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -70,7 +71,7 @@ const mockTraces: TraceData[] = [
         duration: 1200,
         status: 'PASS',
         screenshotPath: '/screenshots/step-001.png',
-        domSnapshot: 'dom-step-001.json'
+        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() }
       },
       {
         id: 'step-002',
@@ -79,7 +80,7 @@ const mockTraces: TraceData[] = [
         duration: 500,
         status: 'PASS',
         screenshotPath: '/screenshots/step-002.png',
-        domSnapshot: 'dom-step-002.json'
+        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() }
       },
       {
         id: 'step-003',
@@ -88,7 +89,7 @@ const mockTraces: TraceData[] = [
         duration: 500,
         status: 'PASS',
         screenshotPath: '/screenshots/step-003.png',
-        domSnapshot: 'dom-step-003.json'
+        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() }
       },
       {
         id: 'step-004',
@@ -97,7 +98,7 @@ const mockTraces: TraceData[] = [
         duration: 800,
         status: 'FAIL',
         screenshotPath: '/screenshots/step-004.png',
-        domSnapshot: 'dom-step-004.json',
+        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() },
         errorMessage: 'TimeoutError: Waiting for selector "#dashboard": timeout 30000ms exceeded',
         consoleLogs: [
           '2025-12-17T10:00:04.500Z INFO: Clicked Sign In button',
@@ -196,8 +197,8 @@ const ForgeTracer: React.FC = () => {
       setCurrentExecutionStep(i);
       setLiveExecutionSteps(prev => [...prev, {
         ...steps[i],
-        status: i === 3 ? 'FAIL' as const : 'RUNNING' as const
-      }]);
+        status: i === 3 ? 'FAIL' : 'PASS'
+      }] as TraceStep[]);
     }
     setIsExecuting(false);
   };
@@ -472,16 +473,8 @@ const ForgeTracer: React.FC = () => {
     `;
   };
 
-  // Filter steps based on status and search
-  const filteredSteps = selectedTrace?.steps.filter(step => {
-    const matchesStatus = filterStatus === 'ALL' || step.status === filterStatus;
-    const matchesSearch = searchQuery === '' ||
-      step.action.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  }) || [];
-
   // Analyze error and provide root cause
-  const analyzeError = (errorMessage: string, step: TraceStep) => {
+  const analyzeError = (errorMessage: string, _step: TraceStep) => {
     const analysis = {
       error: errorMessage,
       probableCause: '',
@@ -923,7 +916,7 @@ const ForgeTracer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      const prevStep = selectedTrace?.steps.find((s, i) =>
+                      const prevStep = selectedTrace?.steps.find((_s, i) =>
                         i > 0 && selectedTrace.steps[i - 1].id === selectedStepId
                       );
                       if (prevStep) {
@@ -937,7 +930,8 @@ const ForgeTracer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      const nextStep = selectedTrace?.steps.find((s, i) =>
+                      if (!selectedTrace) return;
+                      const nextStep = selectedTrace.steps.find((s, i) =>
                         i < selectedTrace.steps.length - 1 && s.id === selectedStepId
                       );
                       if (nextStep) {
@@ -979,7 +973,7 @@ const ForgeTracer: React.FC = () => {
                       }}
                     />
                     {/* Step markers */}
-                    {selectedTrace?.steps.map((step, idx) => (
+                    {selectedTrace?.steps.map((step, _idx) => (
                       <div
                         key={step.id}
                         className="absolute top-0 w-1 h-2 bg-slate-500 transform -translate-x-1/2"
@@ -1285,9 +1279,8 @@ const ForgeTracer: React.FC = () => {
               )}
             </div>
           </div>
-            </div>
-          )}
-        </div>
+        )}
+      </div>
       )}
 
       {/* DOM Snapshot Modal */}

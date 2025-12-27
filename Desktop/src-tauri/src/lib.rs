@@ -12,6 +12,8 @@ use commands::db::{
     delete_project,
     create_kernel,
     get_kernels,
+    update_kernel,
+    delete_kernel,
     create_script,
     get_scripts,
     get_script,
@@ -53,6 +55,12 @@ use commands::db::{
     get_data_rows,
     update_data_row,
     delete_data_row,
+    // Database pruning and archiving
+    get_database_stats,
+    prune_old_executions,
+    archive_executions,
+    delete_archived_executions,
+    vacuum_database,
 };
 
 // Engine management commands
@@ -66,23 +74,25 @@ use commands::engine::{
     restart_engine,
     get_engine_logs,
     send_engine_command,
+    detect_kernels,
+    add_kernel_from_path,
+    test_kernel_compatibility,
+    get_platform_info,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize logger
+    env_logger::init();
+
     info!("Starting TraceForge Desktop...");
 
+    // Initialize database
+    if let Err(e) = commands::db::init_db_connection() {
+        eprintln!("Failed to initialize database: {}", e);
+    }
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_sql::Builder::default().build())
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .targets([
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: Some("traceforge.log".to_string()) }),
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
-                ])
-                .build(),
-        )
         .invoke_handler(tauri::generate_handler![
             greet,
             init_database,
@@ -93,6 +103,8 @@ pub fn run() {
             delete_project,
             create_kernel,
             get_kernels,
+            update_kernel,
+            delete_kernel,
             create_script,
             get_scripts,
             get_script,
@@ -134,6 +146,12 @@ pub fn run() {
             get_data_rows,
             update_data_row,
             delete_data_row,
+            // Database pruning and archiving
+            get_database_stats,
+            prune_old_executions,
+            archive_executions,
+            delete_archived_executions,
+            vacuum_database,
             spawn_engine,
             stop_engine,
             stop_all_engines,
@@ -142,7 +160,11 @@ pub fn run() {
             get_engine_status,
             restart_engine,
             get_engine_logs,
-            send_engine_command
+            send_engine_command,
+            detect_kernels,
+            add_kernel_from_path,
+            test_kernel_compatibility,
+            get_platform_info
         ])
         .setup(|_app| {
             info!("TraceForge Desktop initialized successfully");

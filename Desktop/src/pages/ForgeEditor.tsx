@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Play, Save, Database,
   ChevronRight, ChevronDown, CheckCircle2,
-  AlertCircle, ExternalLink, Camera,
+  AlertCircle,
   Table, Plus, Trash, FileSpreadsheet,
   Target, TestTube2, X, Zap
 } from 'lucide-react';
@@ -11,7 +11,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import ScreenshotViewer from '../components/ScreenshotViewer';
 
 const ForgeEditor: React.FC = () => {
-  const { projectName } = useForgeStore();
+  const { getProjectName } = useForgeStore();
+  const projectName = getProjectName();
   const { t } = useTranslation();
   const [showDataTable, setShowDataTable] = useState(false);
   const [testLocatorModal, setTestLocatorModal] = useState<{

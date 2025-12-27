@@ -1,5 +1,12 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
+
+// Helper to invoke Tauri commands
+const invoke = async <T>(cmd: string, args?: unknown): Promise<T> => {
+  if (window.__TAURI__?.invoke) {
+    return window.__TAURI__.invoke(cmd, args);
+  }
+  throw new Error('Tauri not available');
+};
 
 export interface SyncStatus {
   isOnline: boolean;

@@ -1,7 +1,13 @@
 // WebSocket client for ForgeEngine communication
 // Implements ForgeWS protocol v1.0.0
 
-import { invoke } from '@tauri-apps/api/core';
+// Helper to invoke Tauri commands
+const invoke = async <T>(cmd: string, args?: unknown): Promise<T> => {
+  if (window.__TAURI__?.invoke) {
+    return window.__TAURI__.invoke(cmd, args);
+  }
+  throw new Error('Tauri not available');
+};
 
 export type WSStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 

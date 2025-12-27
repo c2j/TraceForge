@@ -38,7 +38,9 @@ const QuickAction: React.FC<{ icon: React.ElementType; title: string; sub: strin
 );
 
 const ForgeDashboard: React.FC = () => {
-  const { projectName, projectVersion } = useForgeStore();
+  const { getProjectName, getProjectVersion } = useForgeStore();
+  const projectName = getProjectName();
+  const projectVersion = getProjectVersion();
   const { t } = useTranslation();
 
   return (

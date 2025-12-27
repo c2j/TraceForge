@@ -107,6 +107,31 @@ export const resources = {
       theme: 'Theme',
       language: 'Language',
       selectLanguage: 'Select Language'
+    },
+    tracer: {
+      title: 'Trace Viewer',
+      subtitle: 'Debug and analyze test execution traces',
+      searchTraces: 'Search traces...',
+      filterAll: 'All',
+      filterPass: 'Pass',
+      filterFail: 'Fail',
+      back: 'Back',
+      visualDiff: 'Visual Diff',
+      export: 'Export',
+      customView: 'Custom View',
+      playwrightTrace: 'Playwright Trace',
+      noTraceAvailable: 'No trace available',
+      noTraceHelp: 'Select a trace to view details',
+      timeline: 'Timeline',
+      screenshot: 'Screenshot',
+      fullscreen: 'Fullscreen',
+      noScreenshot: 'No screenshot available',
+      errorDetected: 'Error Detected',
+      visualRegression: 'Visual Regression',
+      domSnapshot: 'DOM Snapshot',
+      consoleLogs: 'Console Logs',
+      networkActivity: 'Network Activity',
+      selectStep: 'Select a step to view details'
     }
   },
   zh: {
@@ -217,6 +242,31 @@ export const resources = {
       theme: '界面主题',
       language: '语言设置',
       selectLanguage: '选择语言'
+    },
+    tracer: {
+      title: '追踪查看器',
+      subtitle: '调试和分析测试执行追踪',
+      searchTraces: '搜索追踪...',
+      filterAll: '全部',
+      filterPass: '通过',
+      filterFail: '失败',
+      back: '返回',
+      visualDiff: '视觉对比',
+      export: '导出',
+      customView: '自定义视图',
+      playwrightTrace: 'Playwright 追踪',
+      noTraceAvailable: '无可用追踪',
+      noTraceHelp: '选择一个追踪查看详情',
+      timeline: '时间线',
+      screenshot: '截图',
+      fullscreen: '全屏',
+      noScreenshot: '无可用截图',
+      errorDetected: '检测到错误',
+      visualRegression: '视觉回归',
+      domSnapshot: 'DOM 快照',
+      consoleLogs: '控制台日志',
+      networkActivity: '网络活动',
+      selectStep: '选择一个步骤查看详情'
     }
   }
 };

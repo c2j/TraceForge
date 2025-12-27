@@ -1,9 +1,179 @@
 // Engine management commands for ForgeEngine spawning and lifecycle
+// Kernel detection and management for Chrome compatibility testing
 use tauri::command;
 use log::{info, error, warn};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
+use std::path::Path;
+use serde::{Deserialize, Serialize};
+
+// ============================================================================
+// Kernel Detection Types
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectedKernel {
+    pub name: String,
+    pub version: String,
+    pub executable_path: String,
+    pub is_compatible: bool,
+    pub platform: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KernelTestResult {
+    pub kernel_id: String,
+    pub kernel_name: String,
+    pub kernel_version: String,
+    pub test_passed: bool,
+    pub test_message: String,
+    pub test_time: String,
+}
+
+// ============================================================================
+// Kernel Detection Functions
+// ============================================================================
+
+/// Detect Chrome executable on the system
+fn detect_chrome_executable() -> Vec<DetectedKernel> {
+    let mut kernels = Vec::new();
+
+    // Common Chrome installation paths by platform
+    let paths = if cfg!(target_os = "windows") {
+        vec![
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe".to_string(),
+            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe".to_string(),
+            r"C:\Users\{USER}\AppData\Local\Google\Chrome\Application\chrome.exe".to_string(),
+            r"C:\Program Files\Chromium\Application\chrome.exe".to_string(),
+        ]
+    } else if cfg!(target_os = "macos") {
+        let home_path = format!("{}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            std::env::var("HOME").unwrap_or_default());
+        vec![
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome".to_string(),
+            "/Applications/Chromium.app/Contents/MacOS/Chromium".to_string(),
+            home_path,
+        ]
+    } else if cfg!(target_os = "linux") {
+        vec![
+            "/usr/bin/google-chrome".to_string(),
+            "/usr/bin/google-chrome-stable".to_string(),
+            "/usr/bin/chromium".to_string(),
+            "/usr/bin/chromium-browser".to_string(),
+            "/opt/google/chrome/google-chrome".to_string(),
+            "/snap/bin/chromium".to_string(),
+        ]
+    } else {
+        vec![]
+    };
+
+    for path in paths {
+        let expanded_path = if path.contains("{USER}") {
+            if let Ok(home) = std::env::var("USERPROFILE") {
+                path.replace("{USER}", &home)
+            } else {
+                continue;
+            }
+        } else {
+            path.to_string()
+        };
+
+        if Path::new(&expanded_path).exists() {
+            if let Some(kernel) = inspect_chrome_at_path(&expanded_path) {
+                kernels.push(kernel);
+            }
+        }
+    }
+
+    kernels
+}
+
+/// Inspect Chrome executable and extract version info
+fn inspect_chrome_at_path(path: &str) -> Option<DetectedKernel> {
+    let version_output = if cfg!(target_os = "windows") {
+        Command::new("powershell")
+            .args(&["-Command", &format!(
+                "(Get-ItemProperty '{}').VersionInfo.FileVersion", path
+            )])
+            .output()
+            .ok()
+    } else if cfg!(target_os = "macos") {
+        Command::new("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+            .arg("--version")
+            .output()
+            .or_else(|_| {
+                Command::new(path)
+                    .arg("--version")
+                    .output()
+            })
+            .ok()
+    } else {
+        Command::new(path)
+            .arg("--version")
+            .output()
+            .ok()
+    };
+
+    if let Some(output) = version_output {
+        let version_str = String::from_utf8_lossy(&output.stdout);
+        let version = parse_chrome_version(&version_str);
+        let is_compatible = check_chrome_compatibility(&version);
+
+        return Some(DetectedKernel {
+            name: if is_compatible { "Google Chrome" } else { "Chrome (Incompatible)" }.to_string(),
+            version: version.clone(),
+            executable_path: path.to_string(),
+            is_compatible,
+            platform: std::env::consts::OS.to_string(),
+        });
+    }
+
+    None
+}
+
+/// Parse Chrome version string to extract major version number
+fn parse_chrome_version(version_str: &str) -> String {
+    // Version strings are like "Google Chrome 86.0.4240.198" or "Chromium 86.0.4240.198"
+    let parts: Vec<&str> = version_str
+        .split_whitespace()
+        .filter(|s| {
+            s.chars().next().map(|c| c.is_numeric()).unwrap_or(false)
+        })
+        .collect();
+
+    if let Some(first_version) = parts.first() {
+        // Extract just major.minor.patch for cleaner display
+        let version_parts: Vec<&str> = first_version.split('.').collect();
+        if version_parts.len() >= 3 {
+            format!("{}.{}.{}", version_parts[0], version_parts[1], version_parts[2])
+        } else {
+            first_version.to_string()
+        }
+    } else {
+        "Unknown".to_string()
+    }
+}
+
+/// Check if Chrome version is compatible (minimum 86.0.4240.198)
+fn check_chrome_compatibility(version: &str) -> bool {
+    // Extract major version number
+    if let Some(major_str) = version.split('.').next() {
+        if let Ok(major) = major_str.parse::<u32>() {
+            return major >= 86;
+        }
+    }
+    false
+}
+
+/// Get platform string for display
+fn get_platform() -> String {
+    format!(
+        "{}-{}",
+        std::env::consts::OS,
+        std::env::consts::ARCH
+    )
+}
 
 type EngineProcess = std::process::Child;
 
@@ -20,7 +190,7 @@ impl EngineManager {
     }
 
     fn spawn_engine(&self, port: u16) -> Result<(), String> {
-        let processes = self.processes.lock().unwrap();
+        let mut processes = self.processes.lock().unwrap();
 
         // Check if port is already in use
         if processes.contains_key(&port) {
@@ -274,4 +444,70 @@ pub async fn send_engine_command(port: u16, command: String, args: serde_json::V
     });
 
     Ok(response)
+}
+
+// ============================================================================
+// Kernel Detection Commands
+// ============================================================================
+
+#[command]
+pub async fn detect_kernels() -> Result<Vec<DetectedKernel>, String> {
+    info!("Received detect_kernels request");
+
+    let kernels = detect_chrome_executable();
+    info!("Detected {} kernels", kernels.len());
+
+    Ok(kernels)
+}
+
+#[command]
+pub async fn add_kernel_from_path(executable_path: String) -> Result<DetectedKernel, String> {
+    info!("Received add_kernel_from_path request for: {}", executable_path);
+
+    if !Path::new(&executable_path).exists() {
+        return Err(format!("Executable not found at: {}", executable_path));
+    }
+
+    match inspect_chrome_at_path(&executable_path) {
+        Some(kernel) => {
+            info!("Successfully detected kernel: {} {}", kernel.name, kernel.version);
+            Ok(kernel)
+        }
+        None => Err("Failed to inspect Chrome executable".to_string())
+    }
+}
+
+#[command]
+pub async fn test_kernel_compatibility(kernel_id: String, executable_path: String) -> Result<KernelTestResult, String> {
+    info!("Testing kernel compatibility for: {}", kernel_id);
+
+    // Try to get version from the executable
+    match inspect_chrome_at_path(&executable_path) {
+        Some(kernel) => {
+            let test_passed = kernel.is_compatible;
+            let test_message = if test_passed {
+                format!("Kernel {} {} is compatible (>= 86.0)", kernel.name, kernel.version)
+            } else {
+                format!("Kernel {} {} is NOT compatible (requires >= 86.0)", kernel.name, kernel.version)
+            };
+
+            let result = KernelTestResult {
+                kernel_id,
+                kernel_name: kernel.name,
+                kernel_version: kernel.version,
+                test_passed,
+                test_message: test_message.clone(),
+                test_time: chrono::Utc::now().to_rfc3339(),
+            };
+
+            info!("Kernel test result: {}", test_message);
+            Ok(result)
+        }
+        None => Err("Failed to test kernel compatibility".to_string())
+    }
+}
+
+#[command]
+pub async fn get_platform_info() -> Result<String, String> {
+    Ok(get_platform())
 }

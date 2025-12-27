@@ -3,7 +3,7 @@ import { useForgeStore } from '../stores/useForgeStore';
 import { Server, RefreshCw, Cpu, HardDrive } from 'lucide-react';
 
 const ForgeNodes: React.FC = () => {
-  const { nodes } = useForgeStore();
+  const { treeData } = useForgeStore();
 
   return (
     <div className="p-8">
@@ -24,7 +24,7 @@ const ForgeNodes: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         {nodes.map(node => (
+         {treeData.map((node: any) => (
            <div key={node.id} className="bg-surface border border-slate-700 rounded-lg overflow-hidden flex flex-col">
               <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
                  <div className="flex items-center gap-3">
@@ -72,7 +72,7 @@ const ForgeNodes: React.FC = () => {
                  <div className="pt-2">
                     <span className="text-xs text-slate-500 block mb-1">Available Kernels</span>
                     <div className="flex flex-wrap gap-1">
-                       {node.kernels.map(k => (
+                       {node.kernels.map((k: string) => (
                          <span key={k} className="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] text-slate-300 border border-slate-700">{k}</span>
                        ))}
                     </div>
