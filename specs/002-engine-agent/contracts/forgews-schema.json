@@ -1,0 +1,674 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForgeEngine WebSocket Protocol (ForgeWS)",
+  "description": "WebSocket message schema for ForgeEngine communication with Desktop and Server",
+  "version": "1.0.0",
+  "types": {
+    "WSMessage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message identifier (UUID)"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["request", "response", "event"],
+          "description": "Message type"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action or event name"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Request or response payload",
+          "additionalProperties": true
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message if request failed",
+          "nullable": true
+        }
+      },
+      "required": ["id", "type", "action"]
+    },
+    "StartRecordingRequest": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Starting URL for recording"
+        },
+        "kernel_id": {
+          "type": "string",
+          "description": "Kernel ID to use (optional, uses default if not specified)"
+        }
+      },
+      "required": ["url"]
+    },
+    "StartRecordingResponse": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Recording session ID"
+        }
+      },
+      "required": ["session_id"]
+    },
+    "StopRecordingRequest": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Recording session ID to stop"
+        }
+      },
+      "required": ["session_id"]
+    },
+    "StopRecordingResponse": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "$ref": "#/definitions/Script",
+          "description": "Complete script with Scenario-Page-Action hierarchy"
+        },
+        "trace_path": {
+          "type": "string",
+          "description": "Path to trace.zip file"
+        }
+      },
+      "required": ["script", "trace_path"]
+    },
+    "ExecuteScriptRequest": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "$ref": "#/definitions/Script",
+          "description": "Script to execute"
+        },
+        "data_rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "description": "Data-driven test rows (optional)"
+        },
+        "kernel_id": {
+          "type": "string",
+          "description": "Kernel ID to use"
+        },
+        "headless": {
+          "type": "boolean",
+          "description": "Run headless (default: false for Desktop mode, true for Agent mode)"
+        }
+      },
+      "required": ["script", "kernel_id"]
+    },
+    "GetKernelsResponse": {
+      "type": "object",
+      "properties": {
+        "kernels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Kernel"
+          }
+        }
+      },
+      "required": ["kernels"]
+    },
+    "HealthCheckRequest": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "HealthCheckResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok"],
+          "description": "Always 'ok' if Engine is healthy"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["desktop", "agent"],
+          "description": "Current operating mode"
+        },
+        "active_sessions": {
+          "type": "integer",
+          "description": "Number of active sessions"
+        }
+      },
+      "required": ["status", "mode", "active_sessions"]
+    },
+    "NavigationDetectedEvent": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Recording session ID"
+        },
+        "page_id": {
+          "type": "string",
+          "description": "New page ID"
+        },
+        "url": {
+          "type": "string",
+          "description": "Navigation URL"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["session_id", "page_id", "url", "timestamp"]
+    },
+    "ActionRecordedEvent": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Recording session ID"
+        },
+        "page_id": {
+          "type": "string",
+          "description": "Page ID where action occurred"
+        },
+        "action": {
+          "$ref": "#/definitions/Action",
+          "description": "Recorded action with locators"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["session_id", "page_id", "action", "timestamp"]
+    },
+    "AutoWaitSuggestedEvent": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Recording session ID"
+        },
+        "action_id": {
+          "type": "string",
+          "description": "Action ID that triggered network request"
+        },
+        "suggested_wait": {
+          "type": "string",
+          "enum": ["networkidle", "load", "domcontentloaded"],
+          "description": "Suggested wait condition"
+        },
+        "network_url": {
+          "type": "string",
+          "description": "Network request URL that triggered suggestion"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["session_id", "action_id", "suggested_wait", "timestamp"]
+    },
+    "LogEvent": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["debug", "info", "warning", "error"],
+          "description": "Log level"
+        },
+        "message": {
+          "type": "string",
+          "description": "Log message"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["level", "message", "timestamp"]
+    },
+    "StepStartEvent": {
+      "type": "object",
+      "properties": {
+        "execution_id": {
+          "type": "string",
+          "description": "Execution ID"
+        },
+        "step_id": {
+          "type": "string",
+          "description": "Step ID"
+        },
+        "action": {
+          "$ref": "#/definitions/Action",
+          "description": "Action being executed"
+        },
+        "data_row_index": {
+          "type": "integer",
+          "description": "Data-driven row index (0-based, null if not data-driven)"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["execution_id", "step_id", "action", "timestamp"]
+    },
+    "StepCompleteEvent": {
+      "type": "object",
+      "properties": {
+        "execution_id": {
+          "type": "string",
+          "description": "Execution ID"
+        },
+        "step_id": {
+          "type": "string",
+          "description": "Step ID"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "failed"],
+          "description": "Step completion status"
+        },
+        "result": {
+          "type": "object",
+          "description": "Step result (on completion)",
+          "properties": {
+            "locators_attempted": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Locator types attempted"
+            },
+            "locator_used": {
+              "type": "string",
+              "description": "Locator type that succeeded"
+            }
+          }
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message (if failed)"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "Step duration in milliseconds"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["execution_id", "step_id", "status", "duration_ms", "timestamp"]
+    },
+    "VisualDiffEvent": {
+      "type": "object",
+      "properties": {
+        "execution_id": {
+          "type": "string",
+          "description": "Execution ID"
+        },
+        "step_id": {
+          "type": "string",
+          "description": "Step ID"
+        },
+        "action_id": {
+          "type": "string",
+          "description": "Action ID that failed visual assertion"
+        },
+        "expected_path": {
+          "type": "string",
+          "description": "Expected screenshot path"
+        },
+        "actual_path": {
+          "type": "string",
+          "description": "Actual screenshot path"
+        },
+        "diff_path": {
+          "type": "string",
+          "description": "Diff image path"
+        },
+        "threshold": {
+          "type": "number",
+          "description": "Pixel difference threshold used"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["execution_id", "step_id", "action_id", "expected_path", "actual_path", "diff_path", "threshold", "timestamp"]
+    },
+    "ExecutionCompleteEvent": {
+      "type": "object",
+      "properties": {
+        "execution_id": {
+          "type": "string",
+          "description": "Execution ID"
+        },
+        "result": {
+          "$ref": "#/definitions/Execution",
+          "description": "Execution result with artifacts"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp in milliseconds"
+        }
+      },
+      "required": ["execution_id", "result", "timestamp"]
+    },
+    "ScreenshotMessage": {
+      "description": "Binary WebSocket message for screenshot transmission",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "screenshot"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["jpeg", "png"],
+          "description": "Image format"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session ID (for recording)"
+        },
+        "execution_id": {
+          "type": "string",
+          "description": "Execution ID (for execution)"
+        },
+        "action_id": {
+          "type": "string",
+          "description": "Action ID"
+        },
+        "chunk_index": {
+          "type": "integer",
+          "description": "Chunk index (0 for single message)"
+        },
+        "total_chunks": {
+          "type": "integer",
+          "description": "Total number of chunks"
+        }
+      },
+      "required": ["type", "format"],
+      "oneOf": [
+        {
+          "required": ["session_id"],
+          "description": "Screenshot during recording"
+        },
+        {
+          "required": ["execution_id"],
+          "description": "Screenshot during execution"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Kernel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "executable_path": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "is_default_record": {
+          "type": "boolean"
+        },
+        "is_default_agent": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "name", "executable_path", "version"]
+    },
+    "Script": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Scenario"
+          }
+        },
+        "data_driven": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "target_kernels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["id", "name", "scenarios"]
+    },
+    "Scenario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Page"
+          }
+        }
+      },
+      "required": ["id", "name", "pages"]
+    },
+    "Page": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "entry_url": {
+          "type": "string"
+        },
+        "default_wait": {
+          "type": "string",
+          "enum": ["networkidle", "load", "domcontentloaded"]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Action"
+          }
+        }
+      },
+      "required": ["id", "name", "default_wait", "actions"]
+    },
+    "Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "action_type": {
+          "type": "string",
+          "enum": ["navigate", "click", "fill", "hover", "wait_for", "assert_text", "screenshot", "press"]
+        },
+        "locators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LocatorStrategy"
+          }
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "wait_after": {
+          "type": "string",
+          "enum": ["networkidle", "load", "domcontentloaded"]
+        }
+      },
+      "required": ["id", "name", "action_type"]
+    },
+    "LocatorStrategy": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["role", "text", "css", "xpath", "id"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "fallback": {
+          "type": "boolean"
+        }
+      },
+      "required": ["type", "value", "fallback"]
+    },
+    "Execution": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "script_id": {
+          "type": "string"
+        },
+        "kernel_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["running", "completed", "failed", "cancelled"]
+        },
+        "duration_ms": {
+          "type": "integer"
+        },
+        "trace_path": {
+          "type": "string"
+        },
+        "artifacts": {
+          "type": "object",
+          "properties": {
+            "screenshots": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "action_id": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "diffs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "action_id": {
+                    "type": "string"
+                  },
+                  "actual": {
+                    "type": "string"
+                  },
+                  "expected": {
+                    "type": "string"
+                  },
+                  "diff": {
+                    "type": "string"
+                  },
+                  "threshold": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "script_id", "kernel_id", "status", "duration_ms"]
+    }
+  },
+  "messageTypes": {
+    "requests": {
+      "start_recording": "StartRecordingRequest",
+      "stop_recording": "StopRecordingRequest",
+      "execute_script": "ExecuteScriptRequest",
+      "get_kernels": "HealthCheckRequest",
+      "health_check": "HealthCheckRequest"
+    },
+    "responses": {
+      "start_recording": "StartRecordingResponse",
+      "stop_recording": "StopRecordingResponse",
+      "execute_script": "ExecutionCompleteEvent",
+      "get_kernels": "GetKernelsResponse",
+      "health_check": "HealthCheckResponse"
+    },
+    "events": {
+      "navigation_detected": "NavigationDetectedEvent",
+      "action_recorded": "ActionRecordedEvent",
+      "auto_wait_suggested": "AutoWaitSuggestedEvent",
+      "log": "LogEvent",
+      "step_start": "StepStartEvent",
+      "step_complete": "StepCompleteEvent",
+      "visual_diff": "VisualDiffEvent",
+      "execution_complete": "ExecutionCompleteEvent"
+    },
+    "binary": {
+      "screenshot": "ScreenshotMessage"
+    }
+  }
+}
