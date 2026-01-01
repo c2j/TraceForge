@@ -23,8 +23,8 @@ const ForgeNodes: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         {treeData.map((node: any) => (
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {(treeData || []).map((node: any) => (
            <div key={node.id} className="bg-surface border border-slate-700 rounded-lg overflow-hidden flex flex-col">
               <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
                  <div className="flex items-center gap-3">

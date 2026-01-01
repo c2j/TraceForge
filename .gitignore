@@ -1,0 +1,214 @@
+# ==========================================
+# TraceForge Project .gitignore
+# ==========================================
+
+# ==========================================
+# Subproject directories (Development)
+# ==========================================
+# Note: These may contain source code, uncomment if you want to ignore them
+# Agent/
+# Engine/
+# Server/
+
+# ==========================================
+# Dependencies
+# ==========================================
+node_modules/
+.pnp
+.pnp.js
+yarn-error.log
+yarn-integrity
+
+# ==========================================
+# Testing
+# ==========================================
+coverage/
+*.lcov
+.nyc_output/
+__tests__/coverage/
+tests/unit/coverage/
+
+# ==========================================
+# Production / Build Outputs
+# ==========================================
+dist/
+dist-ssr/
+build/
+*.local
+out/
+# Tauri specific
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# ==========================================
+# Environment Variables
+# ==========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Keep .env.example for reference
+# !.env.example
+
+# ==========================================
+# IDE / Editor
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+# Keep recommended VSCode settings
+# !.vscode/extensions.json
+# !.vscode/settings.json
+
+# ==========================================
+# Debug Logs
+# ==========================================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+server.log/
+*.log
+
+# ==========================================
+# Temporary Files
+# ==========================================
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+.next/
+.nuxt/
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# Rust / Cargo
+# ==========================================
+src-tauri/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# ==========================================
+# Tauri
+# ==========================================
+# iOS
+src-tauri/gen/apple/
+src-tauri/gen/macos/
+src-tauri/gen-ios/
+src-tauri/target/
+src-tauri/*.dSYM/
+src-tauri/*.dwarf/
+src-tauri/Cargo.lock
+
+# Android
+src-tauri/gen/android/
+src-tauri/target/
+src-tauri/*.apk
+src-tauri/*.aab
+
+# Windows
+src-tauri/target/
+src-tauri/*.exe
+src-tauri/*.msi
+
+# Linux
+src-tauri/target/
+src-tauri/*.AppImage
+src-tauri/*.deb
+src-tauri/*.rpm
+
+# ==========================================
+# Database
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+# Keep schema.sql for version control
+# !database/schema.sql
+*.db-journal
+*.db-shm
+*.db-wal
+
+# ==========================================
+# Local Data
+# ==========================================
+local/
+temp/
+tmp/
+*.local
+data/
+
+# ==========================================
+# Playwright
+# ==========================================
+playwright-report/
+test-results/
+playwright/.cache/
+
+# ==========================================
+# Misc
+# ==========================================
+.sass-cache/
+.connect-lock/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==========================================
+# Specific to TraceForge
+# ==========================================
+# Screenshots
+screenshots/
+*.png
+*.jpg
+*.jpeg
+!assets/**/*  # Keep project assets
+
+# Recorded traces
+traces/
+*.trace
+*.cdp
+
+# Kernel detections
+kernels/*.exe
+kernels/*.app
+!src-tauri/**/kernels/*  # Allow kernels in source
+
+# Auto-saves
+*.autosave
+*.backup
+*.bak
+
+# ==========================================
+# AI Assistant Configurations
+# ==========================================
+# Note: Uncomment if you want to ignore these
+# .claude/
+# .gemini/
+# .opencode/
+# .specify/

@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { dialog, fs } from '../lib/tauri';
 
 // ============================================================================
 // Types
@@ -329,21 +330,16 @@ export const useSyncStore = create<SyncState>()(
             // Simulate export
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            if (window.__TAURI__?.dialog) {
-              const filePath = await window.__TAURI__.dialog.save({
-                defaultPath: `project-${projectId}.${format}`,
-                filters: [
-                  { name: format.toUpperCase(), extensions: [format] },
-                  { name: 'All Files', extensions: ['*'] },
-                ],
-              });
+            const filePath = await dialog.save({
+              defaultPath: `project-${projectId}.${format}`,
+              filters: [
+                { name: format.toUpperCase(), extensions: [format] },
+                { name: 'All Files', extensions: ['*'] },
+              ],
+            });
 
-              if (filePath && window.__TAURI__?.fs) {
-                await window.__TAURI__.fs.writeFile(
-                  filePath,
-                  JSON.stringify(data, null, 2)
-                );
-              }
+            if (filePath) {
+              await fs.writeFile(filePath, JSON.stringify(data, null, 2));
             }
 
             set({ syncStatus: 'IDLE', syncMessage: 'Project exported successfully' });

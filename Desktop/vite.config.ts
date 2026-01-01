@@ -17,6 +17,8 @@ export default defineConfig(async () => ({
     port: 1421,
     strictPort: true,
     host: host || false,
+    // CRITICAL: Don't auto-open browser window - Tauri opens its own window
+    open: false,
     hmr: host
       ? {
           protocol: 'ws',

@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use uuid::Uuid;
 
 // Database connection wrapper
+#[allow(dead_code)]
 pub struct DbConnection(pub Arc<Mutex<Connection>>);
 
 // Helper to generate timestamps
@@ -507,6 +508,161 @@ pub async fn delete_script(id: String) -> Result<(), String> {
 
     info!("Script {} deleted successfully", id);
     Ok(())
+}
+
+// ============================================================================
+// BULK SAVE - Save scenarios, pages, and actions for a script
+// ============================================================================
+
+#[command]
+pub async fn update_script_scenarios(
+    script_id: String,
+    scenarios_json: String,
+) -> Result<String, String> {
+    info!("Saving scenarios for script {}", script_id);
+
+    let db_path = get_db_path();
+    let conn = Connection::open(&db_path)
+        .map_err(|e| format!("Failed to open database: {}", e))?;
+
+    // Parse the scenarios JSON
+    let scenarios: Vec<serde_json::Value> = serde_json::from_str(&scenarios_json)
+        .map_err(|e| format!("Failed to parse scenarios JSON: {}", e))?;
+
+    // Begin transaction
+    let tx = conn.unchecked_transaction()
+        .map_err(|e| format!("Failed to start transaction: {}", e))?;
+
+    // Delete existing scenarios, pages, actions, locators, and parameters for this script
+    // First get all scenario IDs for this script
+    {
+        let mut stmt = tx.prepare("SELECT id FROM scenarios WHERE script_id = ?1")
+            .map_err(|e| format!("Failed to prepare query: {}", e))?;
+        let scenario_ids: Result<Vec<String>, _> = stmt.query_map([&script_id], |row| row.get(0))
+            .map_err(|e| format!("Failed to query scenarios: {}", e))?
+            .collect();
+        let scenario_ids = scenario_ids.map_err(|e| format!("Failed to collect scenario IDs: {}", e))?;
+
+        // Delete actions, locators, and parameters for each scenario
+        for scenario_id in &scenario_ids {
+            let mut page_stmt = tx.prepare("SELECT id FROM pages WHERE scenario_id = ?1")
+                .map_err(|e| format!("Failed to prepare page query: {}", e))?;
+            let page_ids: Result<Vec<String>, _> = page_stmt.query_map([scenario_id], |row| row.get(0))
+                .map_err(|e| format!("Failed to query pages: {}", e))?
+                .collect();
+            let page_ids = page_ids.map_err(|e| format!("Failed to collect page IDs: {}", e))?;
+
+            for page_id in &page_ids {
+                // Delete locators for actions in this page
+                tx.execute(
+                    "DELETE FROM locator_strategies WHERE action_id IN (SELECT id FROM actions WHERE page_id = ?1)",
+                    [page_id]
+                ).map_err(|e| format!("Failed to delete locators: {}", e))?;
+
+                // Delete parameters for actions in this page
+                tx.execute(
+                    "DELETE FROM parameters WHERE action_id IN (SELECT id FROM actions WHERE page_id = ?1)",
+                    [page_id]
+                ).map_err(|e| format!("Failed to delete parameters: {}", e))?;
+
+                // Delete actions
+                tx.execute("DELETE FROM actions WHERE page_id = ?1", [page_id])
+                    .map_err(|e| format!("Failed to delete actions: {}", e))?;
+            }
+
+            // Delete pages
+            tx.execute("DELETE FROM pages WHERE scenario_id = ?1", [scenario_id])
+                .map_err(|e| format!("Failed to delete pages: {}", e))?;
+        }
+
+        // Delete scenarios
+        tx.execute("DELETE FROM scenarios WHERE script_id = ?1", [&script_id])
+            .map_err(|e| format!("Failed to delete scenarios: {}", e))?;
+    }
+
+    // Insert new scenarios, pages, and actions
+    for (s_idx, scenario) in scenarios.iter().enumerate() {
+        let sc_id = gen_id();
+        let sc_name = scenario.get("name").and_then(|v| v.as_str()).unwrap_or("Scenario");
+        let sc_priority = scenario.get("priority").and_then(|v| v.as_str()).unwrap_or("P1");
+        let sc_description = scenario.get("description").and_then(|v| v.as_str()).map(|s| s.to_string());
+
+        tx.execute(
+            "INSERT INTO scenarios (id, script_id, name, priority, description, order_index) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![sc_id, script_id, sc_name, sc_priority, sc_description, s_idx as i32]
+        ).map_err(|e| format!("Failed to insert scenario: {}", e))?;
+
+        // Insert pages
+        if let Some(pages) = scenario.get("pages").and_then(|v| v.as_array()) {
+            for (p_idx, page) in pages.iter().enumerate() {
+                let page_id = gen_id();
+                let page_name = page.get("name").and_then(|v| v.as_str()).unwrap_or("Page");
+                let entry_url = page.get("entry_url").and_then(|v| v.as_str()).map(|s| s.to_string());
+                let default_wait = page.get("default_wait").and_then(|v| v.as_str()).map(|s| s.to_string());
+
+                tx.execute(
+                    "INSERT INTO pages (id, scenario_id, name, entry_url, default_wait, order_index) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                    params![page_id, sc_id, page_name, entry_url, default_wait, p_idx as i32]
+                ).map_err(|e| format!("Failed to insert page: {}", e))?;
+
+                // Insert actions
+                if let Some(actions) = page.get("actions").and_then(|v| v.as_array()) {
+                    for (a_idx, action) in actions.iter().enumerate() {
+                        let action_id = gen_id();
+                        let action_name = action.get("name").and_then(|v| v.as_str()).unwrap_or("Action");
+                        let action_type = action.get("action_type").and_then(|v| v.as_str()).unwrap_or("click");
+                        let timeout_ms = action.get("timeout_ms").and_then(|v| v.as_i64()).unwrap_or(30000) as i32;
+                        let wait_after = action.get("wait_after").and_then(|v| v.as_str()).map(|s| s.to_string());
+                        let screenshot_enabled = action.get("screenshot_enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+
+                        tx.execute(
+                            "INSERT INTO actions (id, page_id, name, action_type, order_index, timeout_ms, wait_after, screenshot_enabled) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                            params![action_id, page_id, action_name, action_type, a_idx as i32, timeout_ms, wait_after, screenshot_enabled as i32]
+                        ).map_err(|e| format!("Failed to insert action: {}", e))?;
+
+                        // Insert locators
+                        if let Some(locators) = action.get("locators").and_then(|v| v.as_array()) {
+                            for locator in locators {
+                                let locator_id = gen_id();
+                                let loc_type = locator.get("locator_type").and_then(|v| v.as_str()).unwrap_or("css");
+                                let value = locator.get("value").and_then(|v| v.as_str()).unwrap_or("");
+                                let priority = locator.get("priority").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
+                                let is_fallback = locator.get("is_fallback").and_then(|v| v.as_bool()).unwrap_or(false);
+                                let description = locator.get("description").and_then(|v| v.as_str()).map(|s| s.to_string());
+
+                                tx.execute(
+                                    "INSERT INTO locator_strategies (id, action_id, locator_type, value, priority, is_fallback, description) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                                    params![locator_id, action_id, loc_type, value, priority, is_fallback as i32, description]
+                                ).map_err(|e| format!("Failed to insert locator: {}", e))?;
+                            }
+                        }
+
+                        // Insert parameters
+                        if let Some(parameters) = action.get("parameters").and_then(|v| v.as_array()) {
+                            for param in parameters {
+                                let param_id = gen_id();
+                                let key = param.get("key").and_then(|v| v.as_str()).unwrap_or("");
+                                let value = param.get("value").and_then(|v| v.as_str()).unwrap_or("");
+                                let data_type = param.get("data_type").and_then(|v| v.as_str()).unwrap_or("string");
+
+                                tx.execute(
+                                    "INSERT INTO parameters (id, action_id, key, value, data_type) VALUES (?1, ?2, ?3, ?4, ?5)",
+                                    params![param_id, action_id, key, value, data_type]
+                                ).map_err(|e| format!("Failed to insert parameter: {}", e))?;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Commit transaction
+    tx.commit()
+        .map_err(|e| format!("Failed to commit transaction: {}", e))?;
+
+    info!("Scenarios saved successfully for script {}", script_id);
+    Ok("Scenarios saved successfully".to_string())
 }
 
 // ============================================================================
@@ -1773,7 +1929,7 @@ pub async fn vacuum_database() -> Result<String, String> {
 pub async fn create_data_row(
     data_table_id: String,
     row_index: i32,
-    values: serde_json::Value,
+    json_data: serde_json::Value,
 ) -> Result<String, String> {
     info!("Creating data row for table {}", data_table_id);
 
@@ -1782,11 +1938,11 @@ pub async fn create_data_row(
         .map_err(|e| format!("Failed to open database: {}", e))?;
 
     let id = gen_id();
-    let values_json = values.to_string();
+    let data_json = json_data.to_string();
 
     conn.execute(
-        "INSERT INTO data_rows (id, data_table_id, row_index, values) VALUES (?1, ?2, ?3, ?4)",
-        params![id, data_table_id, row_index, values_json]
+        "INSERT INTO data_rows (id, data_table_id, row_index, json_data) VALUES (?1, ?2, ?3, ?4)",
+        params![id, data_table_id, row_index, data_json]
     )
     .map_err(|e| format!("Failed to create data row: {}", e))?;
 
@@ -1810,7 +1966,7 @@ pub async fn get_data_rows(data_table_id: Option<String>) -> Result<serde_json::
                 "id": row.get::<_, String>(0)?,
                 "data_table_id": row.get::<_, String>(1)?,
                 "row_index": row.get::<_, i32>(2)?,
-                "values": row.get::<_, String>(3)?,
+                "json_data": row.get::<_, String>(3)?,
             }))
         })
         .map_err(|e| format!("Failed to query data rows: {}", e))?
@@ -1827,7 +1983,7 @@ pub async fn get_data_rows(data_table_id: Option<String>) -> Result<serde_json::
 #[command]
 pub async fn update_data_row(
     id: String,
-    values: serde_json::Value,
+    json_data: serde_json::Value,
 ) -> Result<(), String> {
     info!("Updating data row {}", id);
 
@@ -1835,11 +1991,11 @@ pub async fn update_data_row(
     let conn = Connection::open(&db_path)
         .map_err(|e| format!("Failed to open database: {}", e))?;
 
-    let values_json = values.to_string();
+    let data_json = json_data.to_string();
 
     conn.execute(
-        "UPDATE data_rows SET values = ?1 WHERE id = ?2",
-        params![values_json, id]
+        "UPDATE data_rows SET json_data = ?1 WHERE id = ?2",
+        params![data_json, id]
     )
     .map_err(|e| format!("Failed to update data row: {}", e))?;
 

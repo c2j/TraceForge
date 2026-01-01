@@ -39,6 +39,7 @@ afterEach(() => {
       emit: vi.fn(),
     })),
   },
+  convertFileSrc: vi.fn((src: string, protocol: string) => `${protocol}://${src}`),
 };
 
 // Mock ResizeObserver

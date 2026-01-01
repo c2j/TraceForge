@@ -1,13 +1,6 @@
 import { create } from 'zustand';
 import type { Project, Script, Kernel, Execution } from '../lib/types';
-
-// Helper to invoke Tauri commands
-const invoke = async <T>(cmd: string, args?: unknown): Promise<T> => {
-  if (window.__TAURI__?.invoke) {
-    return window.__TAURI__.invoke(cmd, args);
-  }
-  throw new Error('Tauri not available');
-};
+import { invoke, isTauriEnvironment } from '../lib/tauri';
 
 interface DbStore {
   // State
@@ -48,6 +41,7 @@ interface DbStore {
   createProject: (name: string, version: string) => Promise<string>;
   loadScripts: (projectId?: string) => Promise<void>;
   createScript: (name: string, projectId: string) => Promise<string>;
+  updateScriptScenarios: (scriptId: string, scenarios: any[]) => Promise<void>;
   loadKernels: () => Promise<void>;
   createKernel: (name: string, version: string, executablePath: string) => Promise<string>;
   loadExecutions: (projectId?: string) => Promise<void>;
@@ -123,12 +117,17 @@ export const useDbStore = create<DbStore>((set, get) => ({
 
   // Async actions
   initializeDb: async () => {
+    if (!isTauriEnvironment()) {
+      console.warn('Tauri not available, skipping database initialization');
+      set({ isInitialized: false });
+      return;
+    }
     try {
       await invoke('init_database', { dbLabel: 'traceforge.db' });
       set({ isInitialized: true });
     } catch (error) {
       console.error('Failed to initialize database:', error);
-      throw error;
+      set({ isInitialized: false });
     }
   },
 
@@ -209,6 +208,20 @@ export const useDbStore = create<DbStore>((set, get) => ({
       return scriptId;
     } catch (error) {
       console.error('Failed to create script:', error);
+      throw error;
+    }
+  },
+
+  updateScriptScenarios: async (scriptId: string, scenarios: any[]) => {
+    try {
+      await invoke('update_script_scenarios', {
+        dbLabel: 'traceforge.db',
+        scriptId,
+        scenariosJson: JSON.stringify(scenarios),
+      });
+      console.log('Script scenarios updated successfully');
+    } catch (error) {
+      console.error('Failed to update script scenarios:', error);
       throw error;
     }
   },

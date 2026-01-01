@@ -84,6 +84,9 @@
 - [X] T033 [US1] Implement execution history display with filtering and search
 - [X] T034 [US1] Add support for multiple locator strategies per action (role, text, CSS, XPath)
 - [X] T035 [US1] Implement drag-and-drop reordering for tree view nodes (TreeView.tsx)
+- [X] T087 [US1] Verify Recorder page implements full-screen recording mode with real-time interaction capture per US1 acceptance scenarios
+- [X] T088 [US1] Verify automatic locator generation during recording per FR-003
+- [X] T089 [US1] Verify performance requirements met (<500ms UI updates) per FR-002
 
 **Checkpoint**: User Story 1 complete - full offline recording, editing, and execution workflow functional
 
@@ -167,13 +170,14 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [X] T071 [P] Add comprehensive unit tests (Jest + React Testing Library) for all components
-- [X] T072 [P] Add Rust backend unit tests (cargo test) for all commands
+ - [X] T071 [P] Add comprehensive unit tests (Jest + React Testing Library) for all components with 85% coverage target per constitution
+- [X] T072 [P] Add Rust backend unit tests (cargo test) for all commands with 80% coverage target per constitution
 - [X] T073 [P] Create Playwright E2E tests for critical user workflows
 - [X] T074 [P] Implement WebSocket contract tests against ForgeWS schema
-- [X] T075 [P] Optimize performance (lazy loading, virtualization for large scripts)
+- [X] T075 [P] Optimize performance (lazy loading, virtualization for large scripts) with validation against success criteria (SC-003, SC-005, SC-007)
 - [X] T076 Add database pruning and archiving for old executions
 - [X] T077 Implement proper error boundaries and user-friendly error messages
+- [X] T086 [P] Create performance validation tests for success criteria (startup time, recording time, execution time, large script handling)
 - [X] T078 [P] Add keyboard shortcuts and accessibility features
 - [X] T079 Create comprehensive README.md with development and user guides
 - [X] T080 [P] Update architecture diagram showing Desktop ↔ Engine ↔ Server flow

@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
-import { 
-  Search, Filter, ArrowRight, Eye, ChevronLeft, 
+import React, { useState, useEffect } from 'react';
+import {
+  Search, Filter, ArrowRight, Eye, ChevronLeft,
   CheckCircle2, XCircle, Clock, Calendar, Hash,
   FileText, Image, PlayCircle, AlertOctagon, Terminal
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useForgeStore } from '../stores/useForgeStore';
+import { Execution } from '../types';
 
-// Mock Data Types
 interface TestStep {
   id: number;
   name: string;
   status: 'PASS' | 'FAIL';
   duration: string;
   time: string;
-  screenshot?: string;
-  error?: string;
+  screenshot?: string | null;
+  error?: string | null;
 }
 
 interface TestResult {
@@ -28,34 +29,79 @@ interface TestResult {
   steps: TestStep[];
 }
 
-const results: TestResult[] = [
-  { 
-    id: '1', status: 'PASS', project: 'E-Commerce v2.1', script: 'TC001 Login Flow', duration: '12s', kernel: 'Chrome 86', time: '10 mins ago',
-    steps: [
-      { id: 1, name: 'Navigate to /login', status: 'PASS', duration: '1.2s', time: '10:00:01' },
-      { id: 2, name: 'Fill username "user@example.com"', status: 'PASS', duration: '0.5s', time: '10:00:02' },
-      { id: 3, name: 'Fill password "********"', status: 'PASS', duration: '0.5s', time: '10:00:03' },
-      { id: 4, name: 'Click "Sign In"', status: 'PASS', duration: '0.8s', time: '10:00:04' },
-      { id: 5, name: 'Assert URL contains "/dashboard"', status: 'PASS', duration: '0.1s', time: '10:00:05' },
-    ]
-  },
-  { 
-    id: '2', status: 'FAIL', project: 'E-Commerce v2.1', script: 'TC002 Payment Gateway', duration: '45s', kernel: 'Chrome Latest', time: '12 mins ago',
-    steps: [
-      { id: 1, name: 'Navigate to /checkout', status: 'PASS', duration: '2.5s', time: '10:05:00' },
-      { id: 2, name: 'Select Payment "Credit Card"', status: 'PASS', duration: '0.8s', time: '10:05:03' },
-      { id: 3, name: 'Click "Pay Now"', status: 'FAIL', duration: '30.0s', time: '10:05:04', error: 'TimeoutError: Element button[data-testid="pay-submit"] not visible after 30000ms\n    at Page.click (test/payment.spec.ts:45:12)' },
-    ]
-  },
-  { 
-    id: '3', status: 'PASS', project: 'E-Commerce v2.0', script: 'TC003 Search Items', duration: '15s', kernel: 'Chrome 86', time: '2 hours ago',
-    steps: []
-  },
-];
-
 const ForgeResults: React.FC = () => {
   const { t } = useTranslation();
+  const { executions, executionSteps, loadExecutions, loadExecutionSteps, scripts, loadScripts } = useForgeStore();
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadExecutions();
+    loadScripts();
+  }, [loadExecutions, loadScripts]);
+
+  useEffect(() => {
+    if (selectedResultId) {
+      loadExecutionSteps(selectedResultId);
+    }
+  }, [selectedResultId, loadExecutionSteps]);
+
+  const getScriptName = (scriptId: string): string => {
+    const script = scripts.find(s => s.id === scriptId);
+    return script?.name || 'Unknown Script';
+  };
+
+  const getProjectName = (scriptId: string): string => {
+    const script = scripts.find(s => s.id === scriptId);
+    return script?.project_id || 'Unknown Project';
+  };
+
+  const getDuration = (execution: Execution): string => {
+    if (execution.duration_ms) {
+      return `${(execution.duration_ms / 1000).toFixed(1)}s`;
+    }
+    if (execution.started_at && execution.completed_at) {
+      const start = new Date(execution.started_at).getTime();
+      const end = new Date(execution.completed_at).getTime();
+      return `${((end - start) / 1000).toFixed(1)}s`;
+    }
+    return 'N/A';
+  };
+
+  const getRelativeTime = (timestamp: string): string => {
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
+  };
+
+  const results: TestResult[] = (executions || []).map(exec => {
+    const steps = (executionSteps || [])
+      .filter(s => s.execution_id === exec.id)
+      .map(s => ({
+        id: parseInt(s.id.slice(-4), 16) || 0,
+        name: s.action_id || 'Unknown Step',
+        status: s.status as 'PASS' | 'FAIL',
+        duration: s.duration_ms ? `${(s.duration_ms / 1000).toFixed(1)}s` : 'N/A',
+        time: new Date(s.started_at).toLocaleTimeString(),
+        screenshot: s.screenshot_path,
+        error: s.error_message,
+      }));
+
+    return {
+      id: exec.id,
+      status: exec.status as 'PASS' | 'FAIL',
+      project: getProjectName(exec.script_id),
+      script: getScriptName(exec.script_id),
+      duration: getDuration(exec),
+      kernel: exec.kernel_id,
+      time: getRelativeTime(exec.started_at),
+      steps,
+    };
+  });
 
   const selectedResult = results.find(r => r.id === selectedResultId);
 

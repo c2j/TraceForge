@@ -3,6 +3,8 @@
 // Centralized logging with multiple transports
 // ============================================================================
 
+import { invoke, dialog, fs } from '../lib/tauri';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -142,12 +144,10 @@ class FileTransport {
     // Note: File writing will be handled by Tauri backend
     // This is a placeholder for the frontend
     try {
-      if (window.__TAURI__?.invoke) {
-        await window.__TAURI__.invoke('write_log', {
-          entry,
-          path: this.logPath,
-        });
-      }
+      await invoke('write_log', {
+        entry,
+        path: this.logPath,
+      });
     } catch (error) {
       console.error('Failed to write log to file:', error);
     }
@@ -391,8 +391,8 @@ export const downloadLogs = async (): Promise<void> => {
   }).join('\n');
 
   // Create download
-  if (window.__TAURI__?.dialog) {
-    const filePath = await window.__TAURI__.dialog.save({
+  try {
+    const filePath = await dialog.save({
       defaultPath: `traceforge-logs-${Date.now()}.log`,
       filters: [{
         name: 'Log Files',
@@ -400,10 +400,10 @@ export const downloadLogs = async (): Promise<void> => {
       }],
     });
 
-    if (filePath && window.__TAURI__?.fs) {
-      await window.__TAURI__.fs.writeFile(filePath, logText);
+    if (filePath) {
+      await fs.writeFile(filePath, logText);
     }
-  } else {
+  } catch {
     // Fallback for browser
     const blob = new Blob([logText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);

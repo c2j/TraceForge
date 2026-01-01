@@ -31,16 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-**TraceForge Constitution Compliance** (TraceForge Constitution v1.0.0):
-
-- **II. Interface Contract First**: Are API contracts defined before implementation? Is ForgeWS protocol documented? Are OpenAPI/asyncAPI specs in place?
-- **III. Version Management**: Are version strategies defined for Desktop/Engine/Server? Is backward compatibility planned?
-- **IV. Technology Stack**: Are mandatory versions confirmed (Tauri 2.x, React 18, Spring Boot 3.2+, Python 3.12)? Are dependencies locked?
-- **VI. Testing Strategy**: Is test coverage plan >80%? Are contract tests defined for Engine WS? Is Playwright E2E testing planned?
-- **VII. Observability**: Is logging strategy defined (JSON + trace_id)? Is Sentry integration planned?
-- **IX. Documentation Standards**: Are README and API docs planned? Is architecture diagram updated?
-
-*GATE FAILURE*: If any check fails, justify in Complexity Tracking section or fix before proceeding.
+[Gates determined based on constitution file]
 
 ## Project Structure
 

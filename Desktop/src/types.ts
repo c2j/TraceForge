@@ -146,7 +146,7 @@ export interface DataRow {
   id: string;
   data_table_id: string;
   row_index: number;
-  values: string; // JSON string of row values
+  json_data: string; // JSON string of row values
 }
 
 // ============================================================================

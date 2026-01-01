@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Language } from '../locales';
+import { invoke } from '../lib/tauri';
 import {
   Project,
   Script,
@@ -161,8 +162,8 @@ interface ForgeState {
   updateDataTable: (id: string, name: string) => Promise<void>;
   deleteDataTable: (id: string) => Promise<void>;
   loadDataRows: (tableId: string) => Promise<void>;
-  createDataRow: (tableId: string, rowIndex: number, values: unknown) => Promise<string>;
-  updateDataRow: (id: string, values: unknown) => Promise<void>;
+  createDataRow: (tableId: string, rowIndex: number, jsonData: unknown) => Promise<string>;
+  updateDataRow: (id: string, jsonData: unknown) => Promise<void>;
   deleteDataRow: (id: string) => Promise<void>;
 
   // UI Actions
@@ -199,15 +200,6 @@ interface ForgeState {
 // ============================================================================
 // Store Implementation
 // ============================================================================
-
-// Helper to invoke Tauri commands
-const invoke = async <T>(cmd: string, args?: unknown): Promise<T> => {
-  if (window.__TAURI__?.invoke) {
-    return window.__TAURI__.invoke(cmd, args);
-  }
-  // Mock for development
-  return {} as T;
-};
 
 export const useForgeStore = create<ForgeState>()(
   devtools(
@@ -296,11 +288,11 @@ export const useForgeStore = create<ForgeState>()(
           set({ projectsLoading: true });
           try {
             const result = await invoke<unknown>('get_projects');
-            const projects = result as Project[];
+            const projects = Array.isArray(result) ? result as Project[] : [];
             set({ projects, projectsLoading: false });
           } catch (error) {
             console.error('Failed to load projects:', error);
-            set({ projectsLoading: false });
+            set({ projects: [], projectsLoading: false });
           }
         },
 
@@ -345,11 +337,11 @@ export const useForgeStore = create<ForgeState>()(
           set({ scriptsLoading: true });
           try {
             const result = await invoke<unknown>('get_scripts', { projectId });
-            const scripts = result as Script[];
+            const scripts = Array.isArray(result) ? result as Script[] : [];
             set({ scripts, scriptsLoading: false });
           } catch (error) {
             console.error('Failed to load scripts:', error);
-            set({ scriptsLoading: false });
+            set({ scripts: [], scriptsLoading: false });
           }
         },
 
@@ -395,10 +387,11 @@ export const useForgeStore = create<ForgeState>()(
         loadScenarios: async (scriptId) => {
           try {
             const result = await invoke<unknown>('get_scenarios', { scriptId });
-            const scenarios = result as Scenario[];
+            const scenarios = Array.isArray(result) ? result as Scenario[] : [];
             set({ scenarios });
           } catch (error) {
             console.error('Failed to load scenarios:', error);
+            set({ scenarios: [] });
           }
         },
 
@@ -621,11 +614,11 @@ export const useForgeStore = create<ForgeState>()(
           set({ kernelsLoading: true });
           try {
             const result = await invoke<unknown>('get_kernels');
-            const kernels = result as Kernel[];
+            const kernels = Array.isArray(result) ? result as Kernel[] : [];
             set({ kernels, kernelsLoading: false });
           } catch (error) {
             console.error('Failed to load kernels:', error);
-            set({ kernelsLoading: false });
+            set({ kernels: [], kernelsLoading: false });
           }
         },
 
@@ -645,32 +638,43 @@ export const useForgeStore = create<ForgeState>()(
         detectKernels: async () => {
           try {
             const result = await invoke<unknown>('detect_kernels');
-            return result as Kernel[];
+            const kernels = Array.isArray(result) ? result as Kernel[] : [];
+            console.log('[useForgeStore] detectKernels result:', result, 'returning:', kernels);
+            return kernels;
           } catch (error) {
             console.error('Failed to detect kernels:', error);
-            throw error;
+            return [];
           }
         },
 
-        addKernelFromPath: async (executablePath) => {
-          try {
-            const result = await invoke<unknown>('add_kernel_from_path', { executablePath });
-            const kernel = result as Kernel;
+         addKernelFromPath: async (executablePath) => {
+           try {
+             // Check if kernel already exists to prevent duplicates
+             const currentKernels = get().kernels || [];
+             const existingKernel = currentKernels.find(kernel => kernel.executable_path === executablePath);
 
-            // Add to store via create_kernel command
-            await invoke('create_kernel', {
-              name: kernel.name,
-              executablePath: kernel.executable_path,
-              version: kernel.version,
-            });
+             if (existingKernel) {
+               console.log(`[useForgeStore] Kernel already exists: ${executablePath}, skipping`);
+               return existingKernel;
+             }
 
-            await get().loadKernels();
-            return kernel;
-          } catch (error) {
-            console.error('Failed to add kernel from path:', error);
-            throw error;
-          }
-        },
+             const result = await invoke<unknown>('add_kernel_from_path', { executablePath });
+             const kernel = result as Kernel;
+
+             // Add to store via create_kernel command
+             await invoke('create_kernel', {
+               name: kernel.name,
+               executablePath: kernel.executable_path,
+               version: kernel.version,
+             });
+
+             await get().loadKernels();
+             return kernel;
+           } catch (error) {
+             console.error('Failed to add kernel from path:', error);
+             throw error;
+           }
+         },
 
         testKernelCompatibility: async (kernelId, executablePath) => {
           try {
@@ -714,11 +718,11 @@ export const useForgeStore = create<ForgeState>()(
           set({ executionsLoading: true });
           try {
             const result = await invoke<unknown>('get_executions', { scriptId });
-            const executions = result as Execution[];
+            const executions = Array.isArray(result) ? result as Execution[] : [];
             set({ executions, executionsLoading: false });
           } catch (error) {
             console.error('Failed to load executions:', error);
-            set({ executionsLoading: false });
+            set({ executions: [], executionsLoading: false });
           }
         },
 
@@ -758,10 +762,11 @@ export const useForgeStore = create<ForgeState>()(
         loadExecutionSteps: async (executionId) => {
           try {
             const result = await invoke<unknown>('get_execution_steps', { executionId });
-            const steps = result as ExecutionStep[];
+            const steps = Array.isArray(result) ? result as ExecutionStep[] : [];
             set({ executionSteps: steps });
           } catch (error) {
             console.error('Failed to load execution steps:', error);
+            set({ executionSteps: [] });
           }
         },
 
@@ -867,17 +872,18 @@ export const useForgeStore = create<ForgeState>()(
 
         loadDataRows: async (tableId) => {
           try {
-            const result = await invoke<unknown>('get_data_rows', { data_table_id: tableId });
-            const rows = result as DataRow[];
+            const result = await invoke<unknown>('get_data_rows', { tableId });
+            const rows = Array.isArray(result) ? result as DataRow[] : [];
             set({ dataRows: rows });
           } catch (error) {
             console.error('Failed to load data rows:', error);
+            set({ dataRows: [] });
           }
         },
 
-        createDataRow: async (tableId, rowIndex, values) => {
+        createDataRow: async (tableId, rowIndex, jsonData) => {
           try {
-            const id = await invoke<string>('create_data_row', { tableId, rowIndex, values });
+            const id = await invoke<string>('create_data_row', { tableId, rowIndex, jsonData });
             await get().loadDataRows(tableId);
             return id;
           } catch (error) {
@@ -886,9 +892,9 @@ export const useForgeStore = create<ForgeState>()(
           }
         },
 
-        updateDataRow: async (id, values) => {
+        updateDataRow: async (id, jsonData) => {
           try {
-            await invoke('update_data_row', { id, values });
+            await invoke('update_data_row', { id, jsonData });
             // Reload would need tableId from state
           } catch (error) {
             console.error('Failed to update data row:', error);

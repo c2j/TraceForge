@@ -85,12 +85,12 @@
 
 ### Edge Cases
 
-- **Network instability**: What happens when the connection to the server is lost during sync? The system should queue changes and retry when connection is restored.
-- **Large scripts**: How does the system handle scripts with hundreds of steps? The tree view should support virtualization and lazy loading of screenshots.
-- **Engine disconnection**: What happens when the ForgeEngine process crashes during recording or execution? The desktop should automatically detect the disconnection, attempt to restart the engine, and recover the session state.
-- **Incompatible kernels**: How does the system handle attempting to run scripts with a kernel that doesn't exist or is corrupted? The system should detect this during kernel selection and provide clear error messages with remediation steps.
-- **Disk space**: What happens when local SQLite database grows too large? The system should provide a database management interface allowing users to archive old execution results.
-- **Concurrent modifications**: What happens if the user opens the same script in two editor windows? The system should detect this and warn about potential conflicts.
+ - **Network instability**: What happens when the connection to the server is lost during sync? The system should queue changes and retry with exponential backoff (1s, 2s, 4s, 8s, max 30s) for up to 5 minutes before failing with clear error message.
+ - **Large scripts**: How does the system handle scripts with hundreds of steps? The tree view should support virtualization for scripts with >100 steps and lazy loading of screenshots (load only visible items + 10 items buffer) to maintain <100ms UI response time.
+ - **Engine disconnection**: What happens when the ForgeEngine process crashes during recording or execution? The desktop should automatically detect the disconnection within 5 seconds, attempt to restart the engine up to 3 times with 2-second intervals, and recover the session state if possible with user notification.
+ - **Incompatible kernels**: How does the system handle attempting to run scripts with a kernel that doesn't exist or is corrupted? The system should validate kernel executables during selection (check version >=86.0.4240.198, verify executable integrity) and provide clear error messages with remediation steps within 2 seconds.
+ - **Disk space**: What happens when local SQLite database grows too large? The system should monitor database size and provide a database management interface allowing users to archive execution results older than 30 days, with warning when database exceeds 500MB.
+ - **Concurrent modifications**: What happens if the user opens the same script in two editor windows? The system should detect this within 1 second and warn about potential conflicts with option to lock the script in one window.
 
 ## Requirements *(mandatory)*
 
@@ -98,7 +98,7 @@
 
 - **FR-001**: System MUST provide a main dashboard showing project status, recent executions, quick access to recording/editing, and KPI metrics (pass rate, failure count, coverage, script count).
 
-- **FR-002**: System MUST support full-screen recording mode with real-time capture of user interactions, displaying a hierarchical tree (Scenarios > Pages > Actions) with live screenshots updated every 3 seconds.
+- **FR-002**: System MUST support full-screen recording mode with near real-time capture of user interactions (<500ms delay for UI updates), displaying a hierarchical tree (Scenarios > Pages > Actions) with live screenshots captured at each action and updated in UI every 3 seconds during active recording.
 
 - **FR-003**: System MUST automatically generate element locators during recording using priority order: role-based → text-based → CSS → XPath, allowing users to add fallback locators manually.
 
@@ -112,7 +112,7 @@
 
 - **FR-008**: System MUST support local SQLite database for offline storage of scripts, execution results, screenshots, and kernel configurations.
 
-- **FR-009**: System MUST communicate with ForgeEngine via WebSocket for real-time event streaming (steps, screenshots, logs, execution status).
+ - **FR-009**: System MUST communicate with ForgeEngine via WebSocket for event streaming (steps, screenshots, logs, execution status) with <200ms latency for UI updates and immediate delivery for execution-critical events.
 
 - **FR-010**: System MUST provide execution results view with filtering, search, status indicators, and detailed execution reports including screenshots, logs, and trace downloads.
 
@@ -124,7 +124,7 @@
 
 - **FR-014**: System MUST maintain execution history locally with ability to filter by project, status, duration, and kernel version.
 
-- **FR-015**: System MUST display real-time Engine connection status in the header with automatic reconnection attempts on disconnection.
+ - **FR-015**: System MUST display Engine connection status in the header with status updates within 1 second of connection changes, and automatic reconnection attempts using exponential backoff (1s, 2s, 4s, 8s) on disconnection.
 
 - **FR-016**: System MUST provide settings panel for configuring engine port range, server URL, local database path, default recording kernel, and theme preferences.
 
@@ -182,7 +182,7 @@
 
 - ForgeEngine Python sidecar will be developed separately and exposes WebSocket API as specified in design documents.
 
-- Minimum Chrome version support is 86.0.4240.198 for legacy system compatibility.
+ - Chrome version support as specified in FR-006 for legacy system compatibility.
 
 - Local SQLite database will be used for offline-first architecture with automatic schema migration support.
 
@@ -190,5 +190,5 @@
 
 - Server synchronization is optional and not required for core desktop functionality.
 
-- The desktop application will be distributed as a standalone installer for Windows (primary), with Mac/Linux support as secondary priority.
+ - The desktop application will be distributed as a standalone installer for Windows 10/11 (primary), with macOS 12+ and Ubuntu 20.04+ support as secondary priority.
 

@@ -134,7 +134,7 @@ export interface DataRow {
   id: string;
   data_table_id: string;
   row_index: number;
-  values: Record<string, string>;
+  json_data: Record<string, string>;
 }
 
 export interface DataDrivenConfig {

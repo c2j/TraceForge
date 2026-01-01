@@ -2,7 +2,7 @@
 // Kernel detection and management for Chrome compatibility testing
 use tauri::command;
 use log::{info, error, warn};
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::path::Path;
@@ -190,7 +190,7 @@ impl EngineManager {
     }
 
     fn spawn_engine(&self, port: u16) -> Result<(), String> {
-        let mut processes = self.processes.lock().unwrap();
+        let processes = self.processes.lock().unwrap();
 
         // Check if port is already in use
         if processes.contains_key(&port) {
@@ -219,7 +219,7 @@ impl EngineManager {
                 .spawn()
                 .map_err(|e| format!("Failed to spawn engine: {}", e))?;
 
-            processes.insert(port, child);
+            self.processes.lock().unwrap().insert(port, child);
         }
 
         info!("ForgeEngine spawned successfully on port {}", port);

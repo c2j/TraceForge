@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS data_rows (
     id TEXT PRIMARY KEY,
     data_table_id TEXT NOT NULL,
     row_index INTEGER NOT NULL,
-    values TEXT NOT NULL, -- JSON object
+    json_data TEXT NOT NULL, -- JSON object
     FOREIGN KEY (data_table_id) REFERENCES data_tables(id) ON DELETE CASCADE
 );
 

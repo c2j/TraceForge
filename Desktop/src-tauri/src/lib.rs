@@ -19,6 +19,7 @@ use commands::db::{
     get_script,
     update_script,
     delete_script,
+    update_script_scenarios,
     create_scenario,
     get_scenarios,
     update_scenario,
@@ -80,6 +81,17 @@ use commands::engine::{
     get_platform_info,
 };
 
+// Recorder management commands
+use commands::recorder::{
+    get_recorder_logs,
+    get_recorder_scenarios,
+    recorder_action,
+    clear_recorder_logs,
+    clear_recorder_scenarios,
+    add_recorder_log,
+    get_available_port,
+};
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Initialize logger
@@ -110,6 +122,7 @@ pub fn run() {
             get_script,
             update_script,
             delete_script,
+            update_script_scenarios,
             create_scenario,
             get_scenarios,
             update_scenario,
@@ -164,7 +177,15 @@ pub fn run() {
             detect_kernels,
             add_kernel_from_path,
             test_kernel_compatibility,
-            get_platform_info
+            get_platform_info,
+            // Recorder commands
+            get_recorder_logs,
+            get_recorder_scenarios,
+            recorder_action,
+            clear_recorder_logs,
+            clear_recorder_scenarios,
+            add_recorder_log,
+            get_available_port
         ])
         .setup(|_app| {
             info!("TraceForge Desktop initialized successfully");

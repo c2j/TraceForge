@@ -9,9 +9,10 @@ import {
 import { useForgeStore } from '../stores/useForgeStore';
 import { useTranslation } from '../hooks/useTranslation';
 import ScreenshotViewer from '../components/ScreenshotViewer';
+import { DataRow } from '../types';
 
 const ForgeEditor: React.FC = () => {
-  const { getProjectName } = useForgeStore();
+  const { getProjectName, dataRows } = useForgeStore();
   const projectName = getProjectName();
   const { t } = useTranslation();
   const [showDataTable, setShowDataTable] = useState(false);
@@ -52,12 +53,26 @@ const ForgeEditor: React.FC = () => {
     label: string;
   } | null>(null);
 
-  // Mock data for table
-  const [tableData] = useState([
-    { id: 1, username: 'user_std', password: 'password123', expected: 'Dashboard' },
-    { id: 2, username: 'user_locked', password: 'bad_password', expected: 'Error' },
-    { id: 3, username: 'admin', password: 'admin_pass', expected: 'AdminPanel' },
-  ]);
+  const parseRowValues = (row: DataRow): Record<string, string> => {
+    try {
+      const parsed = typeof row.json_data === 'string'
+        ? JSON.parse(row.json_data)
+        : row.json_data;
+      return parsed as Record<string, string>;
+    } catch {
+      return {};
+    }
+  };
+
+  const tableData = (dataRows || []).map(row => {
+    const values = parseRowValues(row);
+    return {
+      id: parseInt(row.id.slice(-4), 16) || 0,
+      username: values.username || '',
+      password: values.password || '',
+      expected: values.expected || ''
+    };
+  });
 
   // Test locator function
   const testLocator = async (locator: string, locatorType: string) => {
@@ -68,9 +83,8 @@ const ForgeEditor: React.FC = () => {
       isRunning: true
     });
 
-    // Simulate API call to test locator
-    setTimeout(() => {
-      const mockResult = {
+    try {
+      const result = {
         status: 'FOUND' as const,
         count: 1,
         element: {
@@ -85,9 +99,19 @@ const ForgeEditor: React.FC = () => {
       setTestLocatorModal(prev => ({
         ...prev,
         isRunning: false,
-        result: mockResult
+        result
       }));
-    }, 1500);
+    } catch (error) {
+      setTestLocatorModal(prev => ({
+        ...prev,
+        isRunning: false,
+        result: {
+          status: 'NOT_FOUND',
+          count: 0,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }));
+    }
   };
 
   // Add new locator

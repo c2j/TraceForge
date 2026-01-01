@@ -8,6 +8,8 @@ import {
   Terminal
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useForgeStore } from '../stores/useForgeStore';
+import { Execution, ExecutionStep } from '../types';
 
 // Types
 interface TraceStep {
@@ -53,111 +55,11 @@ interface TraceData {
   };
 }
 
-// Mock trace data
-const mockTraces: TraceData[] = [
-  {
-    id: 'trace-001',
-    scriptId: 'script-123',
-    scriptName: 'Login Flow Test',
-    kernel: 'Chrome 86',
-    status: 'FAIL',
-    startedAt: '2025-12-17T10:00:00Z',
-    completedAt: '2025-12-17T10:00:45Z',
-    steps: [
-      {
-        id: 'step-001',
-        action: 'Navigate to /login',
-        timestamp: 0,
-        duration: 1200,
-        status: 'PASS',
-        screenshotPath: '/screenshots/step-001.png',
-        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() }
-      },
-      {
-        id: 'step-002',
-        action: 'Fill username field',
-        timestamp: 1200,
-        duration: 500,
-        status: 'PASS',
-        screenshotPath: '/screenshots/step-002.png',
-        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() }
-      },
-      {
-        id: 'step-003',
-        action: 'Fill password field',
-        timestamp: 1700,
-        duration: 500,
-        status: 'PASS',
-        screenshotPath: '/screenshots/step-003.png',
-        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() }
-      },
-      {
-        id: 'step-004',
-        action: 'Click "Sign In" button',
-        timestamp: 2200,
-        duration: 800,
-        status: 'FAIL',
-        screenshotPath: '/screenshots/step-004.png',
-        domSnapshot: { html: '<html>...</html>', url: 'http://example.com/login', timestamp: Date.now() },
-        errorMessage: 'TimeoutError: Waiting for selector "#dashboard": timeout 30000ms exceeded',
-        consoleLogs: [
-          '2025-12-17T10:00:04.500Z INFO: Clicked Sign In button',
-          '2025-12-17T10:00:04.800Z ERROR: Navigation timeout'
-        ],
-        networkRequests: [
-          { url: '/api/login', method: 'POST', status: 200 },
-          { url: '/api/user/profile', method: 'GET', status: 401 }
-        ]
-      }
-    ],
-    traceUrl: '/traces/trace-001.zip',
-    baselineId: 'baseline-001',
-    visualDiff: {
-      percentage: 15.3,
-      diffImagePath: '/diffs/trace-001-diff.png',
-      metrics: {
-        pixelDiff: 12.8,
-        structuralDiff: 18.5,
-        colorDiff: 14.2,
-        layoutShift: 22.1,
-        newElements: 3,
-        removedElements: 1,
-        changedElements: 7
-      }
-    }
-  },
-  {
-    id: 'trace-002',
-    scriptId: 'script-124',
-    scriptName: 'Payment Flow',
-    kernel: 'Chrome Latest',
-    status: 'PASS',
-    startedAt: '2025-12-17T11:00:00Z',
-    completedAt: '2025-12-17T11:01:30Z',
-    steps: [
-      {
-        id: 'step-101',
-        action: 'Navigate to /checkout',
-        timestamp: 0,
-        duration: 2500,
-        status: 'PASS',
-        screenshotPath: '/screenshots/step-101.png'
-      },
-      {
-        id: 'step-102',
-        action: 'Click "Pay with Card"',
-        timestamp: 2500,
-        duration: 800,
-        status: 'PASS',
-        screenshotPath: '/screenshots/step-102.png'
-      }
-    ],
-    traceUrl: '/traces/trace-002.zip'
-  }
-];
+
 
 const ForgeTracer: React.FC = () => {
   const { t } = useTranslation();
+  const { executions, executionSteps, loadExecutions, loadExecutionSteps } = useForgeStore();
   const [selectedTraceId, setSelectedTraceId] = useState<string | null>(null);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -177,8 +79,45 @@ const ForgeTracer: React.FC = () => {
   const [selectedError, setSelectedError] = useState<any>(null);
   const [showErrorAnalysis, setShowErrorAnalysis] = useState(false);
 
-  const selectedTrace = mockTraces.find(t => t.id === selectedTraceId);
-  const selectedStep = selectedTrace?.steps.find(s => s.id === selectedStepId);
+  useEffect(() => {
+    loadExecutions();
+  }, [loadExecutions]);
+
+  useEffect(() => {
+    if (selectedTraceId) {
+      loadExecutionSteps(selectedTraceId);
+    }
+  }, [selectedTraceId, loadExecutionSteps]);
+
+  const selectedTrace = executions.find(e => e.id === selectedTraceId) as TraceData | undefined;
+  const selectedStep = selectedTrace?.steps?.find(s => s.id === selectedStepId);
+
+  const getTraceData = (execution: Execution, steps: ExecutionStep[]): TraceData => ({
+    id: execution.id,
+    scriptId: execution.script_id,
+    scriptName: execution.script_id,
+    kernel: execution.kernel_id,
+    status: execution.status as 'PASS' | 'FAIL' | 'RUNNING',
+    startedAt: execution.started_at,
+    completedAt: execution.completed_at || undefined,
+    steps: steps.map(step => ({
+      id: step.id,
+      action: step.action_id || '',
+      timestamp: new Date(step.started_at).getTime(),
+      duration: step.duration_ms || 0,
+      status: step.status as 'PASS' | 'FAIL' | 'SKIP',
+      screenshotPath: step.screenshot_path || undefined,
+      errorMessage: step.error_message || undefined,
+      consoleLogs: step.log_output ? [step.log_output] : [],
+      networkRequests: []
+    })),
+    traceUrl: execution.trace_path || undefined,
+  });
+
+  const allTraces: TraceData[] = (executions || []).map(exec => {
+    const steps = (executionSteps || []).filter(s => s.execution_id === exec.id);
+    return getTraceData(exec, steps);
+  });
 
   // Get current steps based on execution mode
   const currentSteps = executionMode === 'live' ? liveExecutionSteps : selectedTrace?.steps || [];
@@ -195,10 +134,7 @@ const ForgeTracer: React.FC = () => {
     for (let i = 0; i < steps.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setCurrentExecutionStep(i);
-      setLiveExecutionSteps(prev => [...prev, {
-        ...steps[i],
-        status: i === 3 ? 'FAIL' : 'PASS'
-      }] as TraceStep[]);
+      setLiveExecutionSteps(prev => [...prev, steps[i]] as TraceStep[]);
     }
     setIsExecuting(false);
   };
@@ -242,11 +178,11 @@ const ForgeTracer: React.FC = () => {
       status: selectedTrace.status,
       startedAt: selectedTrace.startedAt,
       completedAt: selectedTrace.completedAt,
-      totalSteps: selectedTrace.steps.length,
-      passedSteps: selectedTrace.steps.filter(s => s.status === 'PASS').length,
-      failedSteps: selectedTrace.steps.filter(s => s.status === 'FAIL').length,
-      skippedSteps: selectedTrace.steps.filter(s => s.status === 'SKIP').length,
-      steps: selectedTrace.steps.map(step => ({
+      totalSteps: selectedTrace.steps?.length || 0,
+      passedSteps: selectedTrace.steps?.filter(s => s.status === 'PASS').length || 0,
+      failedSteps: selectedTrace.steps?.filter(s => s.status === 'FAIL').length || 0,
+      skippedSteps: selectedTrace.steps?.filter(s => s.status === 'SKIP').length || 0,
+      steps: selectedTrace.steps?.map(step => ({
         id: step.id,
         action: step.action,
         timestamp: step.timestamp,
@@ -256,7 +192,7 @@ const ForgeTracer: React.FC = () => {
         errorMessage: step.errorMessage,
         consoleLogs: step.consoleLogs,
         networkRequests: step.networkRequests
-      })),
+      })) || [],
       generatedAt: new Date().toISOString()
     };
 
@@ -631,7 +567,7 @@ const ForgeTracer: React.FC = () => {
 
           {/* Trace List */}
           <div className="grid gap-4">
-            {mockTraces.map(trace => (
+            {allTraces.map(trace => (
               <div
                 key={trace.id}
                 className="bg-surface border border-slate-700 rounded p-4 hover:border-blue-500 cursor-pointer transition-colors"
@@ -998,7 +934,7 @@ const ForgeTracer: React.FC = () => {
 
               {/* Steps List */}
               <div className="p-2">
-                {currentSteps.map((step, idx) => {
+                {(currentSteps || []).map((step, idx) => {
                   const isCurrentStep = executionMode === 'live' && idx === currentExecutionStep;
                   const isCompleted = executionMode === 'live' && idx < currentExecutionStep;
 

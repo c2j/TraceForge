@@ -137,21 +137,24 @@ export const waitForAsync = () => new Promise(resolve => setTimeout(resolve, 0))
 
 // Mock Tauri dialog responses
 export const mockDialogOpen = (filePath: string) => {
-  if (window.__TAURI__?.dialog) {
-    window.__TAURI__.dialog.open = vi.fn().mockResolvedValue(filePath);
+  const tauri = window.__TAURI__ as any;
+  if (tauri?.dialog) {
+    tauri.dialog.open = vi.fn().mockResolvedValue(filePath);
   }
 };
 
 export const mockDialogSave = (filePath: string) => {
-  if (window.__TAURI__?.dialog) {
-    window.__TAURI__.dialog.save = vi.fn().mockResolvedValue(filePath);
+  const tauri = window.__TAURI__ as any;
+  if (tauri?.dialog) {
+    tauri.dialog.save = vi.fn().mockResolvedValue(filePath);
   }
 };
 
 // Mock Tauri invoke responses
 export const mockInvoke = (command: string, returnValue: any) => {
-  if (window.__TAURI__?.invoke) {
-    (window.__TAURI__.invoke as any).mockImplementation((cmd: string) => {
+  const tauri = window.__TAURI__ as any;
+  if (tauri?.invoke) {
+    tauri.invoke.mockImplementation((cmd: string) => {
       if (cmd === command) {
         return returnValue;
       }

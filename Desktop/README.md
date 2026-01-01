@@ -44,18 +44,31 @@ cargo build
 
 ### Development
 
+⚠️ **Important**: TraceForge is a Tauri desktop application and **must** be run with Tauri development server, not in browser mode.
+
 ```bash
-# Start development server (Tauri + Vite)
+# Start Tauri development server (includes backend + frontend) - CORRECT ✅
 npm run tauri:dev
 
-# Run frontend only
+# OR using npx
+npx tauri dev
+
+# This will:
+# 1. Start Rust backend (Tauri)
+# 2. Start React frontend (Vite on port 1421)
+# 3. Open desktop application window
+
+# ❌ DO NOT USE (frontend only, no backend):
 npm run dev
+# This will cause "Tauri Environment Not Detected" error
 
 # Run tests
 npm test                    # Run unit tests
 npm run test:coverage       # Run with coverage
 npm run test:e2e            # Run E2E tests with Playwright
 ```
+
+**See [DEVELOPMENT.md](./DEVELOPMENT.md) for detailed troubleshooting and common issues.**
 
 ### Building
 

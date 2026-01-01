@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForgeStore } from '../stores/useForgeStore';
 import { Chrome, Search, Plus, Trash2, CheckCircle, Play, AlertCircle, FolderOpen, Loader2 } from 'lucide-react';
+import { dialog } from '../lib/tauri';
 
 const ForgeKernels: React.FC = () => {
   const { kernels, loadKernels, detectKernels, addKernelFromPath, testKernelCompatibility, deleteKernel, setDefaultKernel } = useForgeStore();
@@ -15,12 +16,21 @@ const ForgeKernels: React.FC = () => {
 
   const handleAutoDetect = async () => {
     setDetecting(true);
+    console.log('[ForgeKernels] Starting kernel detection...');
     try {
       const detected = await detectKernels();
+      console.log('[ForgeKernels] Detected kernels:', detected);
+      if (!Array.isArray(detected)) {
+        console.warn('[ForgeKernels] detectKernels did not return an array:', detected);
+        setDetecting(false);
+        return;
+      }
       for (const kernel of detected) {
+        console.log('[ForgeKernels] Processing kernel:', kernel.name, kernel.executable_path, kernel.is_compatible);
         if (kernel.is_compatible) {
           try {
             await addKernelFromPath(kernel.executable_path);
+            console.log('[ForgeKernels] Added kernel:', kernel.name);
           } catch (e) {
             console.warn('Failed to add detected kernel:', e);
           }
@@ -34,9 +44,20 @@ const ForgeKernels: React.FC = () => {
   };
 
   const handleManualAdd = async () => {
-    // This would open a file picker dialog
-    // For now, it's a placeholder
-    alert('File picker dialog will be implemented here');
+    console.log('[ForgeKernels] Opening file picker...');
+    try {
+      const result = await dialog.open({
+        filters: [{ name: 'Executable', extensions: ['app', 'exe', ''] }],
+        multiple: false,
+      });
+      console.log('[ForgeKernels] File picker result:', result);
+      if (result && typeof result === 'string') {
+        await addKernelFromPath(result);
+      }
+    } catch (e) {
+      console.error('File picker error:', e);
+      alert('Failed to select file: ' + String(e));
+    }
   };
 
   const handleTestKernel = async (kernelId: string, executablePath: string) => {

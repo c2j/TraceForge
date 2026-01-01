@@ -7,7 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node.js dependencies
+# Node.js/TypeScript dependencies
 node_modules/
 dist/
 dist-ssr/
@@ -30,6 +30,7 @@ dist-ssr/
 .env
 .env.local
 .env.production
+.env*.local
 
 # Testing
 coverage/
@@ -54,7 +55,14 @@ release/
 *.rlib
 *.profraw
 *.prof*
+*.so
+*.dll
+*.exe
 Cargo.lock
+
+# Tauri specific
+src-tauri/tauri.conf.json
+src-tauri/gen/
 
 # Database
 *.db

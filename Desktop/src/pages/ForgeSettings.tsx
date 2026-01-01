@@ -3,6 +3,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useSyncStore } from '../stores/useSyncStore';
 import { useForgeStore } from '../stores/useForgeStore';
 import { Language } from '../locales';
+import { dialog } from '../lib/tauri';
 import {
   Server,
   Database,
@@ -288,16 +289,16 @@ const ForgeSettings: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Export Project</label>
             <div className="flex gap-2">
-              <select
-                className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
-                value={currentProject?.id || ''}
-              >
-                <option value="">Select project...</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.version})
-                  </option>
-                ))}
+               <select
+                 className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+                 value={currentProject?.id || ''}
+               >
+                 <option value="">Select project...</option>
+                 {(projects || []).map((p) => (
+                   <option key={p.id} value={p.id}>
+                     {p.name} ({p.version})
+                   </option>
+                 ))}
               </select>
               <button
                 onClick={() => currentProject && exportProject(currentProject.id, 'json')}
@@ -311,18 +312,15 @@ const ForgeSettings: React.FC = () => {
 
           <div className="border-t border-slate-700 pt-4">
             <button
-              onClick={() => {
-                if (window.__TAURI__?.dialog) {
-                  window.__TAURI__.dialog.open({
-                    multiple: false,
-                    filters: [
-                      { name: 'TraceForge Project', extensions: ['json', 'yaml'] },
-                      { name: 'All Files', extensions: ['*'] },
-                    ],
-                  }).then((path) => {
-                    if (path) importProject(path as string);
-                  });
-                }
+              onClick={async () => {
+                const path = await dialog.open({
+                  multiple: false,
+                  filters: [
+                    { name: 'TraceForge Project', extensions: ['json', 'yaml'] },
+                    { name: 'All Files', extensions: ['*'] },
+                  ],
+                });
+                if (path) importProject(path);
               }}
               className="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded flex items-center justify-center gap-2"
             >
