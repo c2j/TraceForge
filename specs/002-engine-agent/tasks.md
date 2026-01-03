@@ -22,11 +22,11 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create backend/engine/ project structure per implementation plan
-- [ ] T002 Initialize Python 3.11+ project with requirements.txt (FastAPI, Playwright, Pydantic, PyInstaller, pytest, pytest-asyncio, pytest-mock)
-- [ ] T003 [P] Configure ruff for linting and black for formatting in .ruff.toml and pyproject.toml
-- [ ] T004 [P] Create backend/tests/ directory structure (unit, contract, integration)
-- [ ] T005 Install Playwright browsers (playwright install chromium)
+- [X] T001 Create backend/engine/ project structure per implementation plan
+- [X] T002 Initialize Python 3.11+ project with requirements.txt (FastAPI, Playwright, Pydantic, PyInstaller, pytest, pytest-asyncio, pytest-mock)
+- [X] T003 [P] Configure ruff for linting and black for formatting in .ruff.toml and pyproject.toml
+- [X] T004 [P] Create backend/tests/ directory structure (unit, contract, integration)
+- [X] T005 Install Playwright browsers (playwright install chromium)
 
 **Checkpoint**: Project structure ready, dependencies installed
 
@@ -39,26 +39,20 @@
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 ### Database Layer
-- [ ] T006 Create SQLite database schema in backend/engine/database/models.py (kernels, scripts, executions, settings tables)
-- [ ] T007 [P] Implement kernel repository in backend/engine/database/kernel_repo.py (CRUD operations for Kernel entity)
-- [ ] T008 [P] Implement script repository in backend/engine/database/script_repo.py (CRUD operations for Script entity)
-- [ ] T009 [P] Implement execution repository in backend/engine/database/execution_repo.py (CRUD operations for Execution entity, cleanup logic for 100/1000 records)
-- [ ] T010 [P] Implement settings repository in backend/engine/database/settings_repo.py (key-value operations for Settings entity)
-- [ ] T011 Create database connection pool in backend/engine/database/__init__.py (SQLite with WAL mode)
-
-### Configuration & Logging
-- [ ] T012 [P] Create configuration management in backend/engine/config.py (parse CLI args, load from config file, environment variables)
-- [ ] T013 [P] Create structured logging infrastructure in backend/engine/utils/logging.py (JSON logging, log rotation, correlation IDs)
-
-### Pydantic Models
-- [ ] T014 [P] Create WebSocket message models in backend/engine/models/websocket.py (WSMessage, StartRecordingRequest, StopRecordingRequest, ExecuteScriptRequest, etc.)
-- [ ] T015 [P] Create script structure models in backend/engine/models/script.py (Script, Scenario, Page, Action, LocatorStrategy)
-- [ ] T016 [P] Create kernel and execution models in backend/engine/models/kernel.py and backend/engine/models/execution.py (Kernel, Execution, ExecutionStep)
-- [ ] T017 [P] Create settings model in backend/engine/models/__init__.py (Settings key-value pairs)
-
-### FastAPI Application
-- [ ] T018 Create FastAPI application entry point in backend/engine/main.py (app instance, CLI argument parsing, startup/shutdown events)
-- [ ] T019 [P] Create WebSocket connection manager in backend/engine/websocket/manager.py (track connections, broadcasting, disconnect handling)
+- [X] T006 Create SQLite database schema in backend/engine/database/models.py (kernels, scripts, executions, settings tables)
+- [X] T007 [P] Implement kernel repository in backend/engine/database/kernel_repo.py (CRUD operations for Kernel entity)
+- [X] T008 [P] Implement script repository in backend/engine/database/script_repo.py (CRUD operations for Script entity)
+- [X] T009 [P] Implement execution repository in backend/engine/database/execution_repo.py (CRUD operations for Execution entity, cleanup logic for 100/1000 records)
+- [X] T010 [P] Implement settings repository in backend/engine/database/settings_repo.py (key-value operations for Settings entity)
+- [X] T011 Create database connection pool in backend/engine/database/__init__.py (SQLite with WAL mode)
+- [X] T012 [P] Create configuration management in backend/engine/config.py (parse CLI args, load from config file, environment variables)
+- [X] T013 [P] Create structured logging infrastructure in backend/engine/utils/logging.py (JSON logging, log rotation, correlation IDs)
+- [X] T014 [P] Create WebSocket message models in backend/engine/models/websocket.py (WSMessage, StartRecordingRequest, StopRecordingRequest, ExecuteScriptRequest, etc.)
+- [X] T015 [P] Create script structure models in backend/engine/models/script.py (Script, Scenario, Page, Action, LocatorStrategy)
+- [X] T016 [P] Create kernel and execution models in backend/engine/models/kernel.py and backend/engine/models/execution.py (Kernel, Execution, ExecutionStep)
+- [X] T017 [P] Create settings model in backend/engine/models/__init__.py (Settings key-value pairs)
+- [X] T018 Create FastAPI application entry point in backend/engine/main.py (app instance, CLI argument parsing, startup/shutdown events)
+- [X] T019 [P] Create WebSocket connection manager in backend/engine/websocket/manager.py (track connections, broadcasting, disconnect handling)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -73,19 +67,20 @@
 ### Implementation for User Story 1
 
 #### WebSocket Endpoints
-- [ ] T020 [P] [US1] Implement /ws WebSocket endpoint in backend/engine/websocket/server.py (Desktop mode endpoint, single connection only)
-- [ ] T021 [US1] Implement health_check handler in backend/engine/websocket/handlers.py (respond within 100ms, return mode and active_sessions)
-- [ ] T022 [US1] Implement get_kernels handler in backend/engine/websocket/handlers.py (query kernel_repo, return list of available kernels)
-- [ ] T023 [US1] Implement connection loss handling in backend/engine/websocket/manager.py (30s pause/reconnect mechanism per spec FR-034)
+- [X] T020 [P] [US1] Implement /ws WebSocket endpoint in backend/engine/websocket/server.py (Desktop mode endpoint, single connection only)
+- [X] T021 [US1] Implement health_check handler in backend/engine/websocket/handlers.py (respond within 100ms, return mode and active_sessions)
+- [X] T022 [US1] Implement get_kernels handler in backend/engine/websocket/handlers.py (query kernel_repo, return list of available kernels)
+- [X] T023 [US1] Implement connection loss handling in backend/engine/websocket/manager.py (30s pause/reconnect mechanism per spec FR-034)
 
 #### Browser Management
-- [ ] T024 [P] [US1] Create browser manager in backend/engine/browser/manager.py (launch/close browser instances, BrowserContext persistence per spec FR-003)
-- [ ] T025 [P] [US1] Create kernel loader in backend/engine/browser/kernel.py (load custom Chrome paths, validate Chrome 86+ version per spec FR-002)
-- [ ] T026 [US1] Create Playwright tracing support in backend/engine/browser/tracing.py (enable/disable tracing, trace.zip generation)
-- [ ] T027 [US1] Implement kernel registration in backend/engine/browser/manager.py (register default kernels on startup per kernel_repo)
+- [X] T024 [P] [US1] Create browser manager in backend/engine/browser/manager.py (launch/close browser instances, BrowserContext persistence per spec FR-003)
+- [X] T025 [P] [US1] Create kernel loader in backend/engine/browser/kernel.py (load custom Chrome paths, validate Chrome 86+ version per spec FR-002)
+- [X] T026 [US1] Create Playwright tracing support in backend/engine/browser/tracing.py (enable/disable tracing, trace.zip generation)
+- [X] T027 [US1] Implement kernel registration in backend/engine/browser/manager.py (register default kernels on startup per kernel_repo)
 
 #### Session Management
-- [ ] T028 [US1] Implement single-session lock in backend/engine/websocket/server.py (reject concurrent requests per spec FR-030)
+- [X] T027 [P] [US1] Implement kernel registration in backend/engine/browser/manager.py (register default kernels on startup per kernel_repo)
+- [X] T028 [US1] Implement single-session lock in backend/engine/websocket/server.py (reject concurrent requests per spec FR-030)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently (Desktop mode: WebSocket server, kernel management, browser launch/stop, health_check, single-session mode)
 
@@ -100,24 +95,24 @@
 ### Implementation for User Story 2
 
 #### Recording Session
-- [ ] T029 [P] [US2] Create recording session manager in backend/engine/recorder/session.py (session state machine: active/paused/stopped per Session entity)
-- [ ] T030 [US2] Implement start_recording handler in backend/engine/websocket/handlers.py (launch headful browser, start tracing, return session_id)
-- [ ] T031 [US2] Implement stop_recording handler in backend/engine/websocket/handlers.py (generate Script JSON from in-memory pages/actions, save trace.zip, close browser)
+- [X] T029 [P] [US2] Create recording session manager in backend/engine/recorder/session.py (session state machine: active/paused/stopped per Session entity)
+- [X] T030 [US2] Implement start_recording handler in backend/engine/websocket/handlers.py (launch headful browser, start tracing, return session_id)
+- [X] T031 [US2] Implement stop_recording handler in backend/engine/websocket/handlers.py (generate Script JSON from in-memory pages/actions, save trace.zip, close browser)
 
 #### Playwright Event Listener
-- [ ] T032 [P] [US2] Create Playwright event listener in backend/engine/recorder/listener.py (listen for navigation, click, fill, hover events)
-- [ ] T033 [US2] Implement navigation event handling in backend/engine/recorder/page_detector.py (detect navigation, create Page node with entry_url per spec FR-006)
-- [ ] T034 [US2] Implement action capture in backend/engine/recorder/action_capturer.py (capture click/fill/hover with multiple locators: role, text, css, xpath, id per spec FR-007)
+- [X] T032 [P] [US2] Create Playwright event listener in backend/engine/recorder/listener.py (listen for navigation, click, fill, hover events)
+- [X] T033 [US2] Implement navigation event handling in backend/engine/recorder/page_detector.py (detect navigation, create Page node with entry_url per spec FR-006)
+- [X] T034 [US2] Implement action capture in backend/engine/recorder/action_capturer.py (capture click/fill/hover with multiple locators: role, text, css, xpath, id per spec FR-007)
 
 #### Network & Wait Detection
-- [ ] T035 [US2] Implement post-action network request detection in backend/engine/recorder/listener.py (detect network requests after actions, send auto_wait_suggested events per spec FR-008)
+- [X] T035 [US2] Implement post-action network request detection in backend/engine/recorder/listener.py (detect network requests after actions, send auto_wait_suggested events per spec FR-008)
 
 #### Screenshot Transmission
-- [ ] T036 [US2] Implement screenshot capture on hover in backend/engine/recorder/action_capturer.py (after hover action, capture page screenshot)
-- [ ] T037 [US2] Implement binary WebSocket message sending in backend/engine/websocket/manager.py (send screenshot as binary JPEG, compress and chunk if >1MB per spec FR-027)
+- [X] T036 [US2] Implement screenshot capture on hover in backend/engine/recorder/action_capturer.py (after hover action, capture page screenshot)
+- [X] T037 [US2] Implement binary WebSocket message sending in backend/engine/websocket/manager.py (send screenshot as binary JPEG, compress and chunk if >1MB per spec FR-027)
 
 #### Event Broadcasting
-- [ ] T038 [US2] Implement real-time event broadcasting in backend/engine/recorder/session.py (send navigation_detected, action_recorded, auto_wait_suggested, log events per spec FR-009)
+- [X] T038 [US2] Implement real-time event broadcasting in backend/engine/recorder/session.py (send navigation_detected, action_recorded, auto_wait_suggested, log events per spec FR-009)
 
 **Checkpoint**: At this point, User Story 2 should be fully functional - recording sessions capture actions with multi-locators, auto page detection, network wait suggestions, and screenshot transmission
 
@@ -132,29 +127,29 @@
 ### Implementation for User Story 3
 
 #### Execution Engine
-- [ ] T039 [P] [US3] Create execution engine in backend/engine/executor/engine.py (traverse Script→Scenario→Page→Action hierarchy per spec FR-011)
-- [ ] T040 [US3] Implement execute_script handler in backend/engine/websocket/handlers.py (launch browser (headful/headless per request), execute script, send step events)
-- [ ] T041 [US3] Implement execution state tracking in backend/engine/executor/engine.py (create/update ExecutionStep, track status: pending/running/completed/failed)
+- [X] T039 [P] [US3] Create execution engine in backend/engine/executor/engine.py (traverse Script→Scenario→Page→Action hierarchy per spec FR-011)
+- [X] T040 [US3] Implement execute_script handler in backend/engine/websocket/handlers.py (launch browser (headful/headless per request), execute script, send step events)
+- [X] T041 [US3] Implement execution state tracking in backend/engine/executor/engine.py (create/update ExecutionStep, track status: pending/running/completed/failed)
 
 #### Locator Fallback
-- [ ] T042 [P] [US3] Create locator fallback strategy in backend/engine/executor/fallback.py (try role → text → css → xpath → id per spec FR-012)
-- [ ] T043 [US3] Implement retry logic in backend/engine/executor/fallback.py (retry with next locator if previous fails, max 5 attempts)
+- [X] T042 [P] [US3] Create locator fallback strategy in backend/engine/executor/fallback.py (try role → text → css → xpath → id per spec FR-012)
+- [X] T043 [US3] Implement retry logic in backend/engine/executor/fallback.py (retry with next locator if previous fails, max 5 attempts)
 
 #### Wait Conditions
-- [ ] T044 [US3] Implement page wait handling in backend/engine/executor/engine.py (wait_for_load_state with networkidle/load/domcontentloaded per spec FR-013, FR-014)
+- [X] T044 [US3] Implement page wait handling in backend/engine/executor/engine.py (wait_for_load_state with networkidle/load/domcontentloaded per spec FR-013, FR-014)
 
 #### Visual Assertions
-- [ ] T045 [P] [US3] Create visual assertion module in backend/engine/executor/visual.py (screenshot comparison with threshold per spec FR-016)
-- [ ] T046 [US3] Implement visual_diff event generation in backend/engine/executor/visual.py (generate expected/actual/diff images on assertion failure)
+- [X] T045 [P] [US3] Create visual assertion module in backend/engine/executor/visual.py (screenshot comparison with threshold per spec FR-016)
+- [X] T046 [US3] Implement visual_diff event generation in backend/engine/executor/visual.py (generate expected/actual/diff images on assertion failure)
 
 #### Event Broadcasting
-- [ ] T047 [US3] Implement execution event broadcasting in backend/engine/executor/engine.py (send step_start, step_complete, screenshot, visual_diff, log, execution_complete events per spec FR-018)
+- [X] T047 [US3] Implement execution event broadcasting in backend/engine/executor/engine.py (send step_start, step_complete, screenshot, visual_diff, log, execution_complete events per spec FR-018)
 
 #### Artifact Generation
-- [ ] T048 [US3] Implement artifact management in backend/engine/utils/artifacts.py (generate trace.zip, capture screenshots per action, save to filesystem per spec FR-017)
+- [X] T048 [US3] Implement artifact management in backend/engine/utils/artifacts.py (generate trace.zip, capture screenshots per action, save to filesystem per spec FR-017)
 
 #### Validation
-- [ ] T049 [US3] Implement script JSON validation in backend/engine/websocket/handlers.py (validate structure before execution per spec FR-026, return descriptive error messages)
+- [X] T049 [US3] Implement script JSON validation in backend/engine/websocket/handlers.py (validate structure before execution per spec FR-026, return descriptive error messages)
 
 **Checkpoint**: At this point, User Story 3 should be fully functional - scripts execute with locator fallback, automatic waiting, visual assertions, and progress events
 
@@ -169,12 +164,12 @@
 ### Implementation for User Story 4
 
 #### Parameter Substitution
-- [ ] T050 [P] [US4] Create data-driven module in backend/engine/executor/data_driven.py (substitute ${variable} placeholders with row values per spec FR-015)
-- [ ] T051 [US4] Implement data-driven execution loop in backend/engine/executor/engine.py (iterate through data_rows, execute script per row)
+- [X] T050 [P] [US4] Create data-driven module in backend/engine/executor/data_driven.py (substitute ${variable} placeholders with row values per spec FR-015)
+- [X] T051 [US4] Implement data-driven execution loop in backend/engine/executor/engine.py (iterate through data_rows, execute script per row)
 
 #### Result Tracking
-- [ ] T052 [US4] Implement per-row result tracking in backend/engine/executor/engine.py (track pass/fail status per data row, continue on failure per spec acceptance scenario 3)
-- [ ] T053 [US4] Add data_row_index to step events in backend/engine/executor/engine.py (include data_row_index in step_start/step_complete events per spec acceptance scenario 5)
+- [X] T052 [US4] Implement per-row result tracking in backend/engine/executor/engine.py (track pass/fail status per data row, continue on failure per spec acceptance scenario 3)
+- [X] T053 [US4] Add data_row_index to step events in backend/engine/executor/engine.py (include data_row_index in step_start/step_complete events per spec acceptance scenario 5)
 
 **Checkpoint**: At this point, User Story 4 should be fully functional - scripts execute with parameter substitution, per-row results tracked, execution continues on row failures
 
@@ -189,35 +184,35 @@
 ### Implementation for User Story 5
 
 #### Agent Mode Setup
-- [ ] T054 [P] [US5] Create /ws/agent WebSocket endpoint in backend/engine/websocket/server.py (Agent mode endpoint, separate from /ws per spec acceptance scenario 1)
-- [ ] T055 [US5] Add --agent CLI flag handling in backend/engine/main.py (detect agent mode, use fixed port, default headless per spec FR-004)
+- [X] T054 [P] [US5] Create /ws/agent WebSocket endpoint in backend/engine/websocket/server.py (Agent mode endpoint, separate from /ws per spec acceptance scenario 1)
+- [X] T055 [US5] Add --agent CLI flag handling in backend/engine/main.py (detect agent mode, use fixed port, default headless per spec FR-004)
 
 #### Server Registration
-- [ ] T056 [P] [US5] Create Server client in backend/engine/agent/client.py (POST registration on startup with kernel list and capabilities per spec FR-020)
-- [ ] T057 [US5] Implement registration logic in backend/engine/main.py startup event (call Server client registration after WebSocket server starts per spec acceptance scenario 2)
+- [X] T056 [P] [US5] Create Server client in backend/engine/agent/client.py (POST registration on startup with kernel list and capabilities per spec FR-020)
+- [X] T057 [US5] Implement registration logic in backend/engine/main.py startup event (call Server client registration after WebSocket server starts per spec acceptance scenario 2)
 
 #### Authentication
-- [ ] T058 [P] [US5] Create API Key authentication module in backend/engine/agent/auth.py (validate API Key from WebSocket handshake or headers per spec FR-028, FR-036)
-- [ ] T059 [US5] Implement authentication middleware for Agent mode in backend/engine/websocket/server.py (require API Key for /ws/agent connections per clarification: Desktop mode no auth, Agent mode API Key)
+- [X] T058 [P] [US5] Create API Key authentication module in backend/engine/agent/auth.py (validate API Key from WebSocket handshake or headers per spec FR-028, FR-036)
+- [X] T059 [US5] Implement authentication middleware for Agent mode in backend/engine/websocket/server.py (require API Key for /ws/agent connections per clarification: Desktop mode no auth, Agent mode API Key)
 
 #### Heartbeat
-- [ ] T060 [P] [US5] Create heartbeat module in backend/engine/agent/heartbeat.py (send heartbeat every 30s with status, kernels, active_tasks per spec FR-036)
-- [ ] T061 [US5] Implement heartbeat scheduling in backend/engine/main.py (start heartbeat task after Server registration per spec acceptance scenario 5)
+- [X] T060 [P] [US5] Create heartbeat module in backend/engine/agent/heartbeat.py (send heartbeat every 30s with status, kernels, active_tasks per spec FR-036)
+- [X] T061 [US5] Implement heartbeat scheduling in backend/engine/main.py (start heartbeat task after Server registration per spec acceptance scenario 5)
 
 #### Concurrent Task Execution
-- [ ] T062 [P] [US5] Implement task semaphore in backend/engine/executor/engine.py (limit to 5 concurrent tasks per spec FR-031)
-- [ ] T063 [US5] Implement task queue for Agent mode in backend/engine/websocket/handlers.py (queue tasks beyond semaphore limit, execute when slot available per spec acceptance scenario 6)
+- [X] T062 [P] [US5] Implement task semaphore in backend/engine/executor/engine.py (limit to 5 concurrent tasks per spec FR-031)
+- [X] T063 [US5] Implement task queue for Agent mode in backend/engine/agent/task_queue.py (queue tasks beyond semaphore limit, execute when slot available per spec acceptance scenario 6)
 
 #### Task Reception & Execution
-- [ ] T064 [US5] Implement task push handling in backend/engine/websocket/handlers.py (accept execute_script tasks from Server via WebSocket per spec FR-021)
-- [ ] T065 [US5] Implement headless execution for Agent tasks in backend/engine/executor/engine.py (force headless mode per spec FR-004)
-- [ ] T066 [US5] Implement result transmission to Server in backend/engine/websocket/handlers.py (send execution_complete event back to Server per spec acceptance scenario 4)
+- [X] T064 [US5] Implement task push handling in backend/engine/websocket/handlers.py (accept execute_script tasks from Server via WebSocket per spec FR-021)
+- [X] T065 [US5] Implement headless execution for Agent tasks in backend/engine/executor/engine.py (force headless mode per spec FR-004)
+- [X] T066 [US5] Implement result transmission to Server in backend/engine/websocket/handlers.py (send execution_complete event back to Server per spec acceptance scenario 4)
 
 #### Artifact Chunking
-- [ ] T067 [US5] Implement artifact chunking in backend/engine/websocket/manager.py (send large artifacts in chunks to avoid message size limits per spec FR-027, acceptance scenario 6)
+- [X] T067 [US5] Implement artifact chunking in backend/engine/agent/chunker.py (send large artifacts in chunks to avoid message size limits per spec FR-027, acceptance scenario 6)
 
 #### Reconnection Handling
-- [ ] T068 [US5] Implement Server reconnection logic in backend/engine/agent/client.py (reconnect on disconnection, re-register on reconnect)
+- [X] T068 [US5] Implement Server reconnection logic in backend/engine/agent/client.py (reconnect on disconnection, re-register on reconnect)
 
 **Checkpoint**: At this point, User Story 5 should be fully functional - Agent mode registers with Server, sends heartbeats, accepts push tasks, executes headlessly with concurrency limit, returns results with chunked artifacts
 
@@ -228,33 +223,33 @@
 **Purpose**: Improvements that affect multiple user stories
 
 ### Integration Tests (Optional - not explicitly requested in spec)
-- [ ] T069 [P] Create recording workflow integration test in backend/tests/integration/test_recording_workflow.py (start recording, perform actions, stop, verify script structure)
-- [ ] T070 [P] Create execution workflow integration test in backend/tests/integration/test_execution_workflow.py (execute script, verify events, check results)
+- [X] T069 [P] Create recording workflow integration test in backend/tests/integration/test_recording_workflow.py (start recording, perform actions, stop, verify script structure)
+- [X] T070 [P] Create execution workflow integration test in backend/tests/integration/test_execution_workflow.py (execute script, verify events, check results)
 
 ### Documentation
-- [ ] T071 [P] Create PyInstaller spec file in backend/engine/engine.spec (--onefile, bundled Playwright and Chrome, metadata per spec FR-023)
-- [ ] T072 [P] Add README.md in backend/engine/ (installation, usage, configuration examples)
-- [ ] T073 [P] Create architecture documentation in docs/002-engine-agent/architecture.md (component diagram, data flow, mode comparison)
+- [X] T071 [P] Create PyInstaller spec file in backend/engine/engine.spec (--onefile, bundled Playwright and Chrome, metadata per spec FR-023)
+- [X] T072 [P] Add README.md in backend/engine/ (installation, usage, configuration examples)
+- [X] T073 [P] Create architecture documentation in docs/002-engine-agent/architecture.md (component diagram, data flow, mode comparison)
 
 ### Error Handling & Resource Cleanup
-- [ ] T074 [P] Add browser crash handling in backend/engine/browser/manager.py (detect crashes, restart browser, log event per spec edge case)
-- [ ] T075 [P] Add graceful shutdown handlers in backend/engine/main.py (close all browser contexts, close WebSocket connections, flush logs, close database)
-- [ ] T076 [P] Add timeout handling for long-running actions in backend/engine/executor/engine.py (timeout after 300s per spec performance goals)
+- [X] T074 [P] Add browser crash handling in backend/engine/browser/manager.py (detect crashes, restart browser, log event per spec edge case)
+- [X] T075 [P] Add graceful shutdown handlers in backend/engine/main.py (close all browser contexts, close WebSocket connections, flush logs, close database)
+- [X] T076 [P] Add timeout handling for long-running actions in backend/engine/executor/engine.py (timeout after 300s per spec performance goals)
 
 ### Performance Optimization
-- [ ] T077 [P] Optimize screenshot compression in backend/engine/recorder/action_capturer.py (tune JPEG quality for size vs clarity, default 85 per settings)
-- [ ] T078 [P] Optimize WebSocket message throughput in backend/engine/websocket/manager.py (batch events where possible, optimize JSON serialization)
-- [ ] T079 [P] Add kernel configuration caching in backend/engine/database/kernel_repo.py (cache kernel configs to avoid repeated DB queries)
+- [X] T077 [P] Optimize screenshot compression in backend/engine/recorder/action_capturer.py (tune JPEG quality for size vs clarity, default 85 per settings)
+- [X] T078 [P] Optimize WebSocket message throughput in backend/engine/websocket/manager.py (batch events where possible, optimize JSON serialization)
+- [X] T079 [P] Add kernel configuration caching in backend/engine/database/kernel_repo.py (cache kernel configs to avoid repeated DB queries)
 
 ### Security Hardening
-- [ ] T080 [P] Add input validation for all WebSocket messages in backend/engine/websocket/handlers.py (validate message structure, sanitize inputs per spec security considerations)
-- [ ] T081 [P] Add rate limiting in backend/engine/websocket/server.py (limit to 50 messages/second per spec SC-007)
-- [ ] T082 [P] Add API Key logging protection in backend/engine/agent/auth.py (never log API Keys, use secure storage per spec research security considerations)
+- [X] T080 [P] Add input validation for all WebSocket messages in backend/engine/websocket/handlers.py (validate message structure, sanitize inputs per spec security considerations)
+- [X] T081 [P] Add rate limiting in backend/engine/websocket/server.py (limit to 50 messages/second per spec SC-007)
+- [X] T082 [P] Add API Key logging protection in backend/engine/agent/auth.py (never log API Keys, use secure storage per spec research security considerations)
 
 ### Packaging & Distribution
-- [ ] T083 [P] Build standalone executable with PyInstaller in backend/engine/ (python -m PyInstaller --onefile --add-data "playwright/driver:/playwright/driver" main.py)
-- [ ] T084 [P] Test executable on target platforms (Windows, macOS, Linux) in backend/engine/ (verify Playwright and Chrome bundled, verify startup)
-- [ ] T085 [P] Validate quickstart.md examples in backend/engine/ (run all quickstart commands, verify they work as documented)
+- [X] T083 [P] Build standalone executable with PyInstaller in backend/engine/ (python -m PyInstaller --onefile --add-data "playwright/driver:/playwright/driver" main.py)
+- [X] T084 [P] Test executable on target platforms (Windows, macOS, Linux) in backend/engine/ (verify Playwright and Chrome bundled, verify startup)
+- [X] T085 [P] Validate quickstart.md examples in backend/engine/ (run all quickstart commands, verify they work as documented)
 
 ---
 

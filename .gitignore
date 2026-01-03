@@ -20,7 +20,52 @@ yarn-error.log
 yarn-integrity
 
 # ==========================================
-# Testing
+# Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+*.whl
+venv/
+ENV/
+env/
+.venv/
+
+# ==========================================
+# Engine-specific
+# ==========================================
+backend/engine/__pycache__/
+backend/engine/*.pyc
+backend/engine/venv/
+backend/engine/.venv/
+backend/engine/playwright-report/
+backend/engine/traces/
+backend/engine/screenshots/
+backend/engine/artifacts/
+backend/engine/*.db
+backend/engine/*.sqlite
+backend/engine/*.sqlite3
+backend/engine/dist/
+backend/engine/build/
+
+# ==========================================
+# Python
 # ==========================================
 coverage/
 *.lcov
